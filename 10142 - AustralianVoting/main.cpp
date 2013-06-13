@@ -6,6 +6,8 @@ using namespace std;
 bool isValid[20];
 int voteCount[20];
 int vote[1000][20];
+int toEliminate[20];
+int eliminateCount;
 unsigned char ballotPointer[1000];
 string names[20];
 int numCandidates;
@@ -20,17 +22,17 @@ void countVotes()
     }
 
     for(int i=0;i<votes;i++){
-        for(int j=0;j<numCandidates;j++){
-            if( vote[i][j] == 1 )
-                voteCount[j]++;
-        }
+        int cid = vote[i][ballotPointer[i]];
+        //cout << cid << endl;
+        voteCount[cid]++;
     }
 
+    /*
     for(int i=0;i<numCandidates;i++)
     {
         cout << names[i] << ": " << voteCount[i] << endl;
     }
-
+    */
 }
 
 int findWinner()
@@ -51,27 +53,26 @@ void minmaxVote(int& minVote, int& maxVote)
     {
         if( isValid[i] )
         {
-        if( voteCount[i] > maxVote ) maxVote = voteCount[i];
-        if( voteCount[i] < minVote ) minVote = voteCount[i];
+            if( voteCount[i] > maxVote ) maxVote = voteCount[i];
+            if( voteCount[i] < minVote ) minVote = voteCount[i];
         }
     }
 }
 
-vector<int> getEliminateCandidates()
+void getEliminateCandidates()
 {
-    vector<int> v;
     int minVote, maxVote;
     minmaxVote(minVote, maxVote);
 
+    eliminateCount = 0;
     for(int i=0;i<numCandidates;i++)
     {
         if( isValid[i] )
         {
             if( voteCount[i] == minVote )
-                v.push_back(i);
+                toEliminate[eliminateCount++] = i;
         }
     }
-    return v;
 }
 
 void processVotes(){
@@ -84,34 +85,33 @@ void processVotes(){
             return;
         }
 
-        vector<int> v = getEliminateCandidates();
-        if( v.size() == validCandidates )
+        getEliminateCandidates();
+        if( eliminateCount == validCandidates )
         {
             // output every valid candidate
-            for(int i=0;i<numCandidates;i++)
+            for(int i=0;i<eliminateCount;i++)
             {
-                if( isValid[i] )
-                    cout << names[i] << endl;
+                cout << names[toEliminate[i]] << endl;
             }
             return;
         }
         else
         {
-            for(int i=0;i<v.size();i++)
+            for(int i=0;i<eliminateCount;i++)
             {
-                cout << "eliminated " << names[v[i]] << endl;
-                isValid[v[i]] = false;
+                int cid = toEliminate[i];
+                //cout << "eliminated " << names[cid] << endl;
+                isValid[cid] = false;
                 validCandidates--;
+
                 for(int j=0;j<votes;j++)
                 {
-                    if( vote[j][v[i]] == 1 )
+                    int bp = ballotPointer[j];
+                    while( !isValid[vote[j][bp]] )
                     {
-                        // redistribute the ballot
-                        // this is not correct though
-                        for(int k=0;k<numCandidates;k++)
-                        {
-                            vote[j][k]--;
-                        }
+                        // move to the next candidate
+                        ballotPointer[j]++;
+                        bp = ballotPointer[j];
                     }
                 }
             }
@@ -126,7 +126,7 @@ int main(){
 
     for(int i=0;i<cases;i++){
         cin >> numCandidates;
-        //cout << numCandidates << endl;
+        //cout << "# candidates = " << numCandidates << endl;
         validCandidates = numCandidates;
         cin.ignore();
 
@@ -138,21 +138,27 @@ int main(){
         }
 
         // read the ballots
+        votes = 0;
         while(true){
             stringstream ss;
             string buf;
  
             getline(cin, buf);
+            //cout << buf << endl;
             if( buf.empty() ) break;
             ss.str(buf);
             for(int j=0;j<numCandidates;j++)
             {
                 int id;
                 ss >> id; 
-                vote[votes][id] = j;
+                // store the votes in preference order
+                vote[votes][j] = id-1;
             }
+            ballotPointer[votes] = 0;
             votes++;
         }
+
+        //cout << "# votes = " << votes << endl;
 
         // process votes
         processVotes();
