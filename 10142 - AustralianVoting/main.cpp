@@ -14,6 +14,7 @@ int numCandidates;
 int validCandidates;
 int votes = 0;
 int minVote, maxVote;
+int winner;
 
 void countVotes()
 {
@@ -31,24 +32,16 @@ void countVotes()
         voteCount[cid]++;
     }
 
+	winner = -1;
     for(int i=0;i<numCandidates;i++)
     {
         if( isValid[i] )
         {
+			if( voteCount[i] > (votes / 2) ) winner = i;
             if( voteCount[i] > maxVote ) maxVote = voteCount[i];
             if( voteCount[i] < minVote ) minVote = voteCount[i];
         }
     }
-}
-
-inline int findWinner()
-{
-    for(int i=0;i<numCandidates;i++)
-    {
-        if( voteCount[i] > (votes / 2) ) return i;
-    }
-
-    return -1;
 }
 
 void getEliminateCandidates()
@@ -67,8 +60,8 @@ void getEliminateCandidates()
 void processVotes(){
     while( true ){
         countVotes();
-        int winner = findWinner();
-        if( winner != -1 )
+        
+		if( winner != -1 )
         {
             cout << names[winner] << endl;
             return;
