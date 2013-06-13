@@ -13,6 +13,7 @@ string names[20];
 int numCandidates;
 int validCandidates;
 int votes = 0;
+int minVote, maxVote;
 
 void countVotes()
 {
@@ -21,34 +22,15 @@ void countVotes()
         voteCount[i] = 0;
     }
 
+    minVote = 1000;
+    maxVote = 0;
+ 
     for(int i=0;i<votes;i++){
         int cid = vote[i][ballotPointer[i]];
         //cout << cid << endl;
         voteCount[cid]++;
     }
 
-    /*
-    for(int i=0;i<numCandidates;i++)
-    {
-        cout << names[i] << ": " << voteCount[i] << endl;
-    }
-    */
-}
-
-int findWinner()
-{
-    for(int i=0;i<numCandidates;i++)
-    {
-        if( voteCount[i] > (votes / 2) ) return i;
-    }
-
-    return -1;
-}
-
-void minmaxVote(int& minVote, int& maxVote)
-{
-    minVote = 1000;
-    maxVote = 0;
     for(int i=0;i<numCandidates;i++)
     {
         if( isValid[i] )
@@ -59,11 +41,18 @@ void minmaxVote(int& minVote, int& maxVote)
     }
 }
 
+inline int findWinner()
+{
+    for(int i=0;i<numCandidates;i++)
+    {
+        if( voteCount[i] > (votes / 2) ) return i;
+    }
+
+    return -1;
+}
+
 void getEliminateCandidates()
 {
-    int minVote, maxVote;
-    minmaxVote(minVote, maxVote);
-
     eliminateCount = 0;
     for(int i=0;i<numCandidates;i++)
     {
