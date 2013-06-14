@@ -5,7 +5,7 @@
 using namespace std;
 
 int main(){
-	int numbers[3000];
+	int preval, curval;
 	bool diffs[3000];
 	int numcount, diffcount;
 	while(true){
@@ -13,16 +13,16 @@ int main(){
 		if( cin.eof() ) break;
 
 		for(int i=0;i<numcount;i++)
-			cin >> numbers[i];
-
-		for(int i=0;i<numcount;i++)
 			diffs[i] = false;
 
+		cin >> preval;
+		curval = preval;
 		diffcount = 0;
-		for(int i=0;i<numcount-1;i++){
-			int diff = abs(numbers[i+1] - numbers[i]);
-			if( diff < 0 ) diff = -diff;
-
+		for(int i=1;i<numcount;i++)
+		{
+			preval = curval;
+			cin >> curval;
+			int diff = abs(curval - preval);
 			if( diff > numcount) continue;
 			if( !diffs[diff] ){
 				diffcount++;
