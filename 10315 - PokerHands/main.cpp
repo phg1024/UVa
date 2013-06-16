@@ -241,21 +241,6 @@ int main(){
 		cardValue[0] = computeCardValue( hands[0] );
 		cardValue[1] = computeCardValue( hands[1] );
 
-        /*
-        cout << (int)cardValue[0].kind << ", " << (int)cardValue[1].kind << endl;
-        for(int i=0;i<5;i++)
-        {
-            cout << (int)cardValue[0].val[i] << "\t";
-        }
-        cout << endl;
-        for(int i=0;i<5;i++)
-        {
-            cout << (int)cardValue[1].val[i] << "\t";
-        }
-        cout << endl;
-        */
-
-
 		if( cardValue[0] > cardValue[1] )
 			cout << "Black wins." << endl;
 		else if( cardValue[0] < cardValue[1] )
