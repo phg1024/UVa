@@ -66,6 +66,7 @@ bool decrypt( const Dict& dict, const WordList& wl, int i, Key& key )
     //cout << words[i] << endl;
     const string& word = wl[i];
     const WordList& candidates = dict[word.size()];
+    if( candidates.empty() ) return false;
 
     for(int j=0;j<candidates.size();j++)
     {
@@ -73,6 +74,8 @@ bool decrypt( const Dict& dict, const WordList& wl, int i, Key& key )
         //cout << candidates[j] << endl;
         if( match( word, candidates[j], key_cpy ) )
         {
+            if( conflict( key_cpy ) ) continue;
+
             if( decrypt( dict, wl, i+1, key_cpy ) )
             {
                 if( !conflict( key_cpy ) )
