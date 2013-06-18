@@ -1,35 +1,44 @@
-#include <iostream>
 #include <cstdio>
+#include <cstring>
+#include <string>
 #include <sstream>
-#include <vector>
+#include <iostream>
 #include <algorithm>
 using namespace std;
 
-typedef vector< vector< string > > Dict;
-typedef vector<string> WordList;
-typedef vector<char> Key;
+char dict[32][1024][17];
+int dictCounter[32] = {0};
 
-WordList split( const string& line )
+void split( const string& line, char words[80][17], int& wordCount )
 {
     stringstream ss;
     ss.str(line);
-    WordList wl;
+    wordCount=0;
     while( true )
     {
         string word;
         ss >> word;
         if( word.empty() ) break;
-        if( std::find(wl.begin(), wl.end(), word) == wl.end() )
+
+        bool contains = false;
+        for(int i=0;i<wordCount;i++)
         {
-            wl.push_back(word);
+            if( strcmp( words[i], word.c_str() ) == 0 )
+            {
+                contains = true;
+            }
+        }
+        if( !contains )
+        {
+            strcpy( words[wordCount], word.c_str() );
+            wordCount++;
         }
     }
-    return wl;
 }
 
-bool match( const string& word, const string& ref, Key& key )
+bool match( char word[17], char ref[17], int wLength, char key[128] )
 {
-    for(int i=0;i<word.size();i++)
+    for(int i=0;i<wLength;i++)
     {
         if( key[ word[i] ] == '*' )
         {
@@ -43,7 +52,7 @@ bool match( const string& word, const string& ref, Key& key )
     return true;
 }
 
-bool conflict( const Key& key )
+bool conflict( const char* key )
 {
     for(char c1='a';c1<='z';c1++)
     {
@@ -57,31 +66,31 @@ bool conflict( const Key& key )
     return false;
 }
 
-bool decrypt( const Dict& dict, const WordList& wl, int i, Key& key )
+bool decrypt( char wl[80][17], int wordCount, int i, char key[128] )
 {
-    if( i >= wl.size() ) return true;
-
-    bool flag = false;
+    if( i >= wordCount ) return true;
 
     // try to match 
     //cout << words[i] << endl;
-    const string& word = wl[i];
-    const WordList& candidates = dict[word.size()];
-    if( candidates.empty() ) return false;
+    int wLength = strlen(wl[i]);
+    int numCandidates = dictCounter[wLength];
+    if( numCandidates == 0 ) return false;
 
-    for(int j=0;j<candidates.size();j++)
+    for(int j=0;j<numCandidates;j++)
     {
-        Key key_cpy = key;
+        char key_cpy[128];
+        memcpy(key_cpy, key, sizeof(char)*128);
+
         //cout << candidates[j] << endl;
-        if( match( word, candidates[j], key_cpy ) )
+        if( match( wl[i], dict[wLength][j], wLength, key_cpy ) )
         {
             if( conflict( key_cpy ) ) continue;
 
-            if( decrypt( dict, wl, i+1, key_cpy ) )
+            if( decrypt( wl, wordCount, i+1, key_cpy ) )
             {
                 if( !conflict( key_cpy ) )
                 {
-                    key = key_cpy;
+                    memcpy(key, key_cpy, sizeof(char)*128);
                     return true;
                 }
             }
@@ -95,14 +104,14 @@ int main(){
     int wordCount;
     scanf("%d", &wordCount);
 
-    Dict dict;
-    dict.resize(32);
-
     for(int i=0;i<wordCount;i++)
     {
         string word;
         cin >> word;
-        dict[ word.size() ].push_back(word);
+        int wLength = word.size();
+        int count = dictCounter[wLength];
+        strcpy(dict[ word.size() ][count], word.c_str());
+        dictCounter[wLength]++;
     }
     cin.ignore();
 
@@ -112,16 +121,17 @@ int main(){
         getline(cin, buf);
         if( buf.empty() ) break;
 
-        Key key;
-        key.resize(128);
+        char key[128];
         for(char c='a';c<='z';c++)
         {
             key[c] = '*';
         }
         
-        WordList words = split( buf );
+        char words[80][17];
+        int wordCount;
+         split( buf, words, wordCount );
 
-        if( decrypt( dict, words, 0, key ) )
+        if( decrypt( words, wordCount, 0, key ) )
         {
             for(int i=0;i<buf.size();i++)
             {
