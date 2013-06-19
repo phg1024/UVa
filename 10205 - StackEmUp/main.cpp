@@ -19,22 +19,9 @@ enum Suit{
 
 struct Card
 {
-    void print()
-    {
-        printf("%s of %s\n", CardName[value], SuitName[suit]);
-    }
-
-    friend ostream& operator<<(ostream& os, const Card& c);
     int value;
     Suit suit;
 };
-
-ostream& operator<<(ostream& os, const Card& c)
-{
-    os << CardName[c.value] << " of " << SuitName[c.suit];
-    return os;
-}
-
 
 void genNewDeck(Card deck[52])
 {
@@ -55,15 +42,13 @@ int main()
 {
     Card deck[52];
     genNewDeck(deck);
-    int order[52];
-    for(int i=0;i<52;i++)
-        order[i] = i;
 
     int ncases;
     scanf("%d", &ncases);
 
     int shuffles[100][52];
- 
+    int sequence[1024];
+
     for(int i=0;i<ncases;i++)
     {
         int nshuffles;
@@ -81,20 +66,26 @@ int main()
         // get the dummy
         getchar();
 
-        vector<int> sequence;
+        int pool[2][52];
+        int* oldorder = &(pool[0][0]);
+        int* neworder = &(pool[1][0]);
+
+        // apply the sequence to the order
+        for(int j=0;j<52;j++)
+            oldorder[j] = j;
+
+        int scount = 0;
         string buf;
         while( true )
         {
             getline(cin, buf);
             if( buf.empty() ) break;
-            sequence.push_back( atoi( buf.c_str() ) - 1 );
+            
+            int sid = atoi( buf.c_str() ) - 1;
+            sequence[scount++] = sid;
         }
-
-        // apply the sequence to the order
-        int oldorder[52];
-        memcpy(oldorder, order, sizeof(int)*52);
-        int neworder[52];
-        for(int j=0;j<sequence.size();j++)
+        
+        for(int j=0;j<scount;j++)
         {
             int* shuffle = &(shuffles[sequence[j]][0]);
 
@@ -102,12 +93,16 @@ int main()
             {
                 neworder[k] = oldorder[shuffle[k]];
             }
-            memcpy(oldorder, neworder, sizeof(int)*52);
+
+            // swap the pointers
+            int *tmp = neworder;
+            neworder = oldorder;
+            oldorder = tmp;
         }
 
         for(int j=0;j<52;j++)
         {
-            deck[oldorder[j]].print();
+            printf("%s of %s\n", CardName[deck[oldorder[j]].value], SuitName[deck[oldorder[j]].suit]);
         }
         if( i != ncases - 1 )
             putchar('\n');
