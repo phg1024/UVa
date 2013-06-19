@@ -3,12 +3,12 @@
 #include <sstream>
 #include <vector>
 #include <cstdlib>
+#include <cstdio>
+#include <cstring>
 using namespace std;
 
-string SuitName[4] = {"Clubs", "Diamonds", "Hearts", "Spades"};
-string CardName[15] = {"", "", "2", "3", "4", "5", "6", "7", "8", "9", "10", "Jack", "Queen", "King", "Ace"};
-
-typedef vector<int> Shuffle;
+char *SuitName[] = {"Clubs", "Diamonds", "Hearts", "Spades"};
+char *CardName[] = {"", "", "2", "3", "4", "5", "6", "7", "8", "9", "10", "Jack", "Queen", "King", "Ace"};
 
 enum Suit{
     Clubs = 0,
@@ -19,6 +19,11 @@ enum Suit{
 
 struct Card
 {
+    void print()
+    {
+        printf("%s of %s\n", CardName[value], SuitName[suit]);
+    }
+
     friend ostream& operator<<(ostream& os, const Card& c);
     int value;
     Suit suit;
@@ -31,55 +36,50 @@ ostream& operator<<(ostream& os, const Card& c)
 }
 
 
-vector<Card> newDeck()
+void genNewDeck(Card deck[52])
 {
-    vector<Card> deck;
+    int count = 0;
     for(int i=0;i<4;i++)
     {
         Suit s = (Suit)i;
         for(int j=2;j<=14;j++)
         {
-            Card c;
-            c.value = j;
-            c.suit = s;
-
-            deck.push_back(c);
+            deck[count].value = j;
+            deck[count].suit = s;
+            count ++;
         }
     }
-    return deck;
 }
 
 int main()
 {
-    vector<Card> newdeck = newDeck();
-    vector<int> order;
+    Card deck[52];
+    genNewDeck(deck);
+    int order[52];
     for(int i=0;i<52;i++)
-        order.push_back(i);
+        order[i] = i;
 
     int ncases;
-    cin >> ncases;
-    cin.ignore();
-    string dummy;
-    getline(cin, dummy); 
+    scanf("%d", &ncases);
+
+    int shuffles[100][52];
  
     for(int i=0;i<ncases;i++)
     {
-       int nshuffles;
-        cin >> nshuffles;
+        int nshuffles;
+        scanf("%d", &nshuffles);
 
-        vector<Shuffle> shuffles;
-        shuffles.resize(nshuffles);
         for(int j=0;j<nshuffles;j++)
         {
-            shuffles[j].resize(52);
             for(int k=0;k<52;k++)
             {
                 int val;
-                cin >> val;
+                scanf("%d", &val);
                 shuffles[j][k] = val - 1;
             }
         }
-        cin.ignore();
+        // get the dummy
+        getchar();
 
         vector<int> sequence;
         string buf;
@@ -91,26 +91,26 @@ int main()
         }
 
         // apply the sequence to the order
-        vector<int> oldorder = order;
-        vector<int> neworder;
-        neworder.resize(52);
+        int oldorder[52];
+        memcpy(oldorder, order, sizeof(int)*52);
+        int neworder[52];
         for(int j=0;j<sequence.size();j++)
         {
-            const Shuffle& shuffle = shuffles[sequence[j]];
+            int* shuffle = &(shuffles[sequence[j]][0]);
 
             for(int k=0;k<52;k++)
             {
                 neworder[k] = oldorder[shuffle[k]];
             }
-            oldorder = neworder;
+            memcpy(oldorder, neworder, sizeof(int)*52);
         }
 
         for(int j=0;j<52;j++)
         {
-            cout << newdeck[oldorder[j]] << endl;
+            deck[oldorder[j]].print();
         }
         if( i != ncases - 1 )
-            cout << endl;
+            putchar('\n');
     }
 
     return 0;
