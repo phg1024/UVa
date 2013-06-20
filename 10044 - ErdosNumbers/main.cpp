@@ -3,6 +3,8 @@
 #include <string>
 #include <vector>
 #include <map>
+#include <queue>
+#include <algorithm>
 using namespace std;
 
 struct Node
@@ -19,7 +21,7 @@ struct Node
 
 ostream& operator<<(ostream& os, const Node& n)
 {
-    os << n.id << ": " << n.name << " - ";
+    os << n.id << ": " << n.name << ", erdosNumber = " << n.erdosNumber << endl;
     for(int i=0;i<n.neighbors.size();i++)
         os << n.neighbors[i] << " ";
     return os;
@@ -59,20 +61,46 @@ void connectNodes(Node& n1, Node& n2)
         n2.neighbors.push_back(n1.id);
 }
 
-void computeErdosNumber(const vector<Node>& nodes, const map<string, int>& nodeMap)
+void computeErdosNumber(vector<Node>& nodes, map<string, int>& nodeMap)
 {
+    const string erdosName = "Erdos, P.";
 
+    int rootIdx = nodeMap[erdosName];
+    nodes[rootIdx].erdosNumber = 0;
+
+    // bfs starting from root
+
+    queue<int> Q;
+
+    Q.push(rootIdx);
+
+    while( !Q.empty() )
+    {
+        int nid = Q.front();
+        Q.pop();
+        Node& n = nodes[nid];
+
+        for(int i=0;i<n.neighbors.size();i++)
+        {
+            Node& neighbor = nodes[n.neighbors[i]];
+            if( neighbor.erdosNumber == -1 )
+            {
+                neighbor.erdosNumber = n.erdosNumber + 1;
+                Q.push( neighbor.id );
+            }
+        }
+    }
 }
 
 int main(){
-    int authorCount = 0;
-    map<string, int> nodeMap;
-    vector<Node> nodes;
-
     int nscenarios;
     cin >> nscenarios;
     for(int i=0;i<nscenarios;i++)
     {
+        map<string, int> nodeMap;
+        vector<Node> nodes;
+        Node::nodeCount = 0;
+
         int npapers, nnames;
         cin >> npapers >> nnames;
         cin.ignore();
@@ -81,7 +109,6 @@ int main(){
         {
             string line;
             getline(cin, line);
-            cout << line << endl;
             vector<string> authors = getAuthors(line);
 
             for(int k=0;k<authors.size();k++)
@@ -111,19 +138,28 @@ int main(){
             }
         }
 
-        cout << nodes.size() << endl;
-        for(map<string, int>::iterator nit = nodeMap.begin();
-            nit != nodeMap.end();
-            nit++)
-        {
-            cout << (*nit).first << " @ " << (*nit).second << endl;
-            cout << "\t" << nodes[(*nit).second] << endl;
-        }
-
         computeErdosNumber(nodes, nodeMap);
 
+        /*
+        for(int j=0;j<nodes.size();j++)
+            cout << nodes[j] << endl;
+        */
+
+        cout << "Scenario " << i + 1 << endl;
         for(int j=0;j<nnames;j++)
         {
+            string name;
+            getline(cin, name);
+            if( nodeMap.find( name ) != nodeMap.end() )
+            {
+                int eNumber = nodes[nodeMap[name]].erdosNumber ;
+                if( eNumber == -1 )
+                    cout << name << " infinity" << endl;
+                else
+                    cout << name << " " << eNumber << endl;
+            }
+            else
+                cout << name << " infinity" << endl;
         }
     }
 

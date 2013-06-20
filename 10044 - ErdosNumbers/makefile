@@ -1,2 +1,2 @@
 all:
-	g++ main.cpp -g
+	g++ main.cpp -lm -O2 -pipe
