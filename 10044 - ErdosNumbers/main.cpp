@@ -1,33 +1,41 @@
+#include <cstdio>
 #include <iostream>
 #include <sstream>
 #include <string>
 #include <vector>
 #include <map>
+#include <set>
 #include <queue>
 #include <algorithm>
 using namespace std;
 
+
 struct Node
 {
-    friend ostream& operator<<(ostream& os, const Node& n);
     static int nodeCount;
+    friend ostream& operator<<(ostream& os, const Node& n);
     Node():erdosNumber(-1){ id = nodeCount; nodeCount++;}
+    Node(const string& str):name(str),erdosNumber(-1){ id = nodeCount; nodeCount++; }
     Node(const Node& n):id(n.id),name(n.name),neighbors(n.neighbors),erdosNumber(n.erdosNumber){}
+
     int id;
     string name;
-    vector<int> neighbors;
+    set<int> neighbors;
     int erdosNumber;
 };
+
+int Node::nodeCount = 0;
 
 ostream& operator<<(ostream& os, const Node& n)
 {
     os << n.id << ": " << n.name << ", erdosNumber = " << n.erdosNumber << endl;
-    for(int i=0;i<n.neighbors.size();i++)
-        os << n.neighbors[i] << " ";
+    for(set<int>::iterator sit=n.neighbors.begin();
+        sit!=n.neighbors.end();
+        sit++)
+        os << (*sit) << " ";
     return os;
 }
 
-int Node::nodeCount = 0;
 
 vector<string> getAuthors(const string& line)
 {
@@ -52,13 +60,10 @@ vector<string> getAuthors(const string& line)
     return v;
 }
 
-void connectNodes(Node& n1, Node& n2)
+inline void connectNodes(Node& n1, Node& n2)
 {
-    if( find(n1.neighbors.begin(), n1.neighbors.end(), n2.id) == n1.neighbors.end() )
-        n1.neighbors.push_back(n2.id);
-
-    if( find(n2.neighbors.begin(), n2.neighbors.end(), n1.id) == n2.neighbors.end() )
-        n2.neighbors.push_back(n1.id);
+    n1.neighbors.insert(n2.id);
+    n2.neighbors.insert(n1.id);
 }
 
 void computeErdosNumber(vector<Node>& nodes, map<string, int>& nodeMap)
@@ -80,9 +85,11 @@ void computeErdosNumber(vector<Node>& nodes, map<string, int>& nodeMap)
         Q.pop();
         Node& n = nodes[nid];
 
-        for(int i=0;i<n.neighbors.size();i++)
+        for(set<int>::iterator sit=n.neighbors.begin();
+            sit!=n.neighbors.end();
+            sit++)
         {
-            Node& neighbor = nodes[n.neighbors[i]];
+            Node& neighbor = nodes[(*sit)];
             if( neighbor.erdosNumber == -1 )
             {
                 neighbor.erdosNumber = n.erdosNumber + 1;
@@ -94,7 +101,7 @@ void computeErdosNumber(vector<Node>& nodes, map<string, int>& nodeMap)
 
 int main(){
     int nscenarios;
-    cin >> nscenarios;
+    scanf("%d", &nscenarios);
     for(int i=0;i<nscenarios;i++)
     {
         map<string, int> nodeMap;
@@ -102,7 +109,7 @@ int main(){
         Node::nodeCount = 0;
 
         int npapers, nnames;
-        cin >> npapers >> nnames;
+        scanf("%d %d", &npapers, &nnames);
         cin.ignore();
 
         for(int j=0;j<npapers;j++)
@@ -117,9 +124,8 @@ int main(){
                 if( nit == nodeMap.end() )
                 {
                     // create a new node for this author
-                    Node n; 
-                    n.name = authors[k];
-                    nodeMap[n.name] = n.id;
+                    Node n( authors[k] ); 
+                    nodeMap[ authors[k] ] = n.id;
                     nodes.push_back(n);
                 }
             }
@@ -140,12 +146,7 @@ int main(){
 
         computeErdosNumber(nodes, nodeMap);
 
-        /*
-        for(int j=0;j<nodes.size();j++)
-            cout << nodes[j] << endl;
-        */
-
-        cout << "Scenario " << i + 1 << endl;
+        printf("Scenario %d\n", i + 1);
         for(int j=0;j<nnames;j++)
         {
             string name;
@@ -154,12 +155,12 @@ int main(){
             {
                 int eNumber = nodes[nodeMap[name]].erdosNumber ;
                 if( eNumber == -1 )
-                    cout << name << " infinity" << endl;
+                    printf("%s infinity\n", name.c_str());
                 else
-                    cout << name << " " << eNumber << endl;
+                    printf("%s %d\n", name.c_str(), eNumber);
             }
             else
-                cout << name << " infinity" << endl;
+                printf("%s infinity\n", name.c_str());
         }
     }
 
