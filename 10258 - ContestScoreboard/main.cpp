@@ -9,8 +9,20 @@ using namespace std;
 
 struct Contestant
 {
-    int penaltyTime[10];
-    bool solved[10];
+    Contestant(int x = 0):
+        solvedProblems(-1),
+        totalPenaltyTime(0),
+        id(x),
+        submitted(false)
+    {
+        for(int i=0;i<10;i++)
+        {
+            penaltyTime[i] = 0;
+            solved[i] = false;
+        }
+    }
+    int penaltyTime[16];
+    bool solved[16];
     int solvedProblems;
     int totalPenaltyTime;
     int id;
@@ -38,8 +50,6 @@ bool comp(const Contestant& c1, const Contestant& c2)
 
 int main()
 {
-    Contestant cc[101];
-
     int nCases = 0;
     cin >> nCases;
     cin.ignore();
@@ -48,20 +58,14 @@ int main()
 
     for(int i=0;i<nCases;i++)
     {
+        Contestant cc[256];
         for(int j=1;j<101;j++)
         {
-            for(int k=1;k<10;k++)
-            {
-                cc[j].penaltyTime[k] = 0;
-                cc[j].solved[k] = false;
-            }
-            cc[j].solvedProblems = 0;
-            cc[j].totalPenaltyTime = 0;
             cc[j].id = j;
-            cc[j].submitted = false;
         }
 
         string buf;
+        int submissionCount = 0;
         while( true )
         {
             getline( cin, buf );
@@ -71,46 +75,36 @@ int main()
             int cid, problem, time;
             char L;
             sscanf(buf.c_str(), "%d %d %d %c", &cid, &problem, &time, &L);
-            switch( L )
+
+            Contestant& c = cc[cid];
+            if( !c.submitted )
             {
-                case 'I':
-                    {
-                        cc[cid].penaltyTime[problem] += 20;
-                        cc[cid].submitted = true;
-                        break;
-                    }
-                case 'C':
-                    {
-                        if( !cc[cid].solved[problem] )
-                        {
-                            cc[cid].solvedProblems ++;
-                            cc[cid].penaltyTime[problem] += time;
-                            cc[cid].totalPenaltyTime += cc[cid].penaltyTime[problem];
-                            cc[cid].submitted = true;
-                            cc[cid].solved[problem] = true;
-                        }
-                        break;
-                    }
-                case 'R':
-                case 'E':
-                case 'U':
-                    {
-                        cc[cid].submitted = true;
-                        break;
-                    }
-                default:
-                    break;
-            } 
+                 c.submitted = true;
+                 c.solvedProblems = 0;
+                 submissionCount++;
+            }
+ 
+            if( L == 'I')
+            {
+                c.penaltyTime[problem] += 20;
+            }
+            else if( L == 'C')
+            {
+                if( !c.solved[problem] )
+                {
+                    c.solvedProblems ++;
+                    c.penaltyTime[problem] += time;
+                    c.totalPenaltyTime += c.penaltyTime[problem];
+                    c.solved[problem] = true;
+                }
+            }
         }
 
         std::sort(cc+1, cc+101, comp);
 
-        for(int j=1;j<101;j++)
+        for(int j=1;j<=submissionCount;j++)
         {
-            if( cc[j].submitted )
-            {
-                cout << cc[j].id << " " << cc[j].solvedProblems << " " << cc[j].totalPenaltyTime << endl;
-            }
+            printf("%d %d %d\n", cc[j].id, cc[j].solvedProblems, cc[j].totalPenaltyTime);
         }
 
         if( i != nCases - 1 )
