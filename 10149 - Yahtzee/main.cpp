@@ -3,13 +3,16 @@
 #include <cstdlib>
 #include <cstdio>
 #include <vector>
+#include <cassert>
+#include <cstring>
 using namespace std;
 
 void computeScores(int dices[13][5], int scores[13][16])
 {
     for(int i=0;i<13;i++)
     {
-        for(int j=0;j<13;j++)
+		//cout << "round " << i << endl;
+        for(int j=1;j<14;j++)
             scores[i][j] = 0;
 
         int counter[7] = {0};
@@ -65,59 +68,117 @@ void computeScores(int dices[13][5], int scores[13][16])
     }
 }
 
-/*
-int getMaxScore(int scores[13][16], const vector<bool>& picked, vector<int>& maxScores, int index)
+inline int countCategories( int j )
 {
-    if( index == 8 )
-    {
-        int sum6 = 0;
-        for(int i=1;i<7;i++)
-        {
-            sum6 += maxScores[i];
-        }
-        if( sum6 >= 63 )
-            maxScores[14] = 35;
-        maxScores[15] = sum6;
-        for(int i=7;i<15;i++)
-            maxScores[15] += maxScores[i];
-
-        return maxScores[15];
-    }
-    else
-    {
-        vector<int> result;
-        result.resize(16);
-        int s = 0;
-        for(int i=0;i<13;i++)
-        {
-            if( picked[i] == false )
-            {
-                // recur on this
-                vector<bool> flag = picked;
-                vector<int> tempScores = maxScores;
-                flag[i] = true;
-                tempScores[index] = scores[i][index];
-                int x = getMaxScore(scores, flag, tempScores, index+1); 
-                if( x > s )
-                {
-                    s = x;
-                    result = tempScores;
-                }
-            }
-        }
-
-        maxScores = result;
-
-        return s;
-    }
+	int count = 0;
+	for(int i=0;i<13;i++)
+	{
+		count += (j & 0x1);
+		j = j >> 1;
+	}
+	return count;
 }
-*/
 
-void getMaxScore(int scores[13][16], vector<int>& maxScores)
+struct Strategy
 {
+	Strategy():score(-1), s6(0), bonus(0){ 
+		for(int i=0;i<13;i++)
+		{
+			category[i] = -1;
+			invCategory[i] = -1;
+		}
+	}
+	Strategy(const Strategy& s){
+		memcpy(category, s.category, sizeof(int)*13);
+		memcpy(invCategory, s.invCategory, sizeof(int)*13);
+		score = s.score;
+		s6 = s.s6;
+		bonus = s.bonus;
+	}
 
-    // 
+	Strategy& operator=(const Strategy& s)
+	{
+		if( this != &s )
+		{
+			memcpy(category, s.category, sizeof(int)*13);
+			memcpy(invCategory, s.invCategory, sizeof(int)*13);
+			score = s.score;
+			s6 = s.s6;
+			bonus = s.bonus;
+		}
+		return (*this);
+	}
 
+	void print()
+	{
+		cout << "score = " << score << endl;;
+		for(int i=0;i<13;i++)
+			cout << category[i] << " " ;
+		cout << endl;
+	}
+
+	int category[13];
+	int invCategory[13];
+	int score;
+	int s6;
+	int bonus;
+};
+
+void getMaxScore(int scores[13][16], Strategy** scoreMap)
+{
+    // dynamic programming
+	// sweep from the first round to the last round
+	Strategy firstSix[64];
+
+	for(int i=0;i<13;i++)
+	{
+		int mask = (0x1 << i);
+		scoreMap[0][mask].score = scores[0][i+1];
+		scoreMap[0][mask].s6 = (i>5)?0:scores[0][i+1];
+		scoreMap[0][mask].category[0] = i;
+		scoreMap[0][mask].invCategory[i] = 0;
+	}
+
+	for(int i=1;i<13;i++)
+	{
+		//cout << "i = " << i << endl;
+		for(int j=1;j<8192;j++)
+		{
+			if( countCategories(j) == i )
+			{
+				for(int k=0;k<13;k++)
+				{
+					int bitpos = (0x1 << k);
+					if( (bitpos & j) == 0 )
+					{
+						// unused slot
+						int slot = (bitpos | j);
+
+						Strategy s = scoreMap[i-1][j];
+
+						s.score += scores[i][k+1];
+						s.category[i] = k;
+						if( k < 6 )
+							s.s6 += scores[i][k+1];
+
+						if( s.s6 > 63 )
+						{
+							s.score += 35;
+							s.s6 = 0;
+							s.bonus = 35;
+						}
+
+						s.invCategory[k] = i;
+
+						if( scoreMap[i][slot].score < s.score )
+						{
+							scoreMap[i][slot] = s;
+						}
+					}
+				}
+			}
+		}
+	}
 }
 
 int main()
@@ -153,27 +214,30 @@ int main()
 
         computeScores(dices, scores);
 
-        /*
+		Strategy** scoreMap;
+		scoreMap = new Strategy*[13];
+		for(int i=0;i<13;i++)
+			scoreMap[i] = new Strategy[8192];
+
+		/*
         for(int i=0;i<13;i++)
         {
             for(int j=1;j<16;j++)
                 cout << scores[i][j] << ' ';
             cout << endl;
         }
-        */
-
-        vector<int> maxScores;
-        maxScores.resize(16);
-        vector<bool> picked;
-        for(int i=0;i<13;i++)
-            picked.push_back(false);
+		*/
 
         //getMaxScore(scores, picked, maxScores, 1);
-        getMaxScore(scores, maxScores);
+        getMaxScore(scores, scoreMap);
 
-        for(int i=1;i<16;i++)
-            cout << maxScores[i] << ' ';
-        cout << endl;
+		Strategy& bs = scoreMap[12][0x1fff];
+		//bs.print();
+		for(int i=0;i<13;i++)
+		{
+			cout << scores[i][ bs.category[i] + 1 ] << ' ';
+		}
+		cout << bs.bonus << ' ' << bs.score << endl;
     } 
     return 0;
 }
