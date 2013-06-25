@@ -128,15 +128,22 @@ void getMaxScore(int scores[13][16], Strategy** scoreMap)
 {
     // dynamic programming
 	// sweep from the first round to the last round
-	Strategy firstSix[64];
-
 	for(int i=0;i<13;i++)
 	{
 		int mask = (0x1 << i);
-		scoreMap[0][mask].score = scores[0][i+1];
-		scoreMap[0][mask].s6 = (i>5)?0:scores[0][i+1];
-		scoreMap[0][mask].category[0] = i;
-		scoreMap[0][mask].invCategory[i] = 0;
+		Strategy s;
+		s.score = scores[0][i+1];
+		s.s6 = (i>5)?0:scores[0][i+1];
+		s.category[0] = i;
+		s.invCategory[i] = 0;
+		if( s.s6 < 63 )
+		{
+			scoreMap[mask][s.s6] = s;	
+		}
+		else
+		{
+			scoreMap[mask][s.s6] = s;
+		}
 	}
 
 	for(int i=1;i<13;i++)
@@ -154,25 +161,39 @@ void getMaxScore(int scores[13][16], Strategy** scoreMap)
 						// unused slot
 						int slot = (bitpos | j);
 
-						Strategy s = scoreMap[i-1][j];
+						Strategy s = scoreMap[j][m];
+							
+							if( s.score == -1 )
+								continue;
 
-						s.score += scores[i][k+1];
-						s.category[i] = k;
-						if( k < 6 )
-							s.s6 += scores[i][k+1];
+							s.score += scores[i][k+1];
+							s.category[i] = k;
+							s.invCategory[k] = i;
+						
+							if( k < 6 )
+								s.s6 += scores[i][k+1];
 
-						if( s.s6 > 63 )
-						{
-							s.score += 35;
-							s.s6 = 0;
-							s.bonus = 35;
-						}
-
-						s.invCategory[k] = i;
-
-						if( scoreMap[i][slot].score < s.score )
-						{
-							scoreMap[i][slot] = s;
+							if( s.s6 >= 63 )
+							{
+								s.score += 35;
+								s.s6 = 0;
+								s.bonus = 35;
+							}
+						
+							if( s.s6 < 63 )
+							{
+								if( scoreMap[slot][s.s6].score < s.score )
+								{
+									scoreMap[slot][s.s6] = s;
+								}														
+							}
+							else
+							{
+								if( scoreMap[slot][63].score < s.score )
+								{
+									scoreMap[slot][63] = s;
+								}							
+							}
 						}
 					}
 				}
@@ -214,10 +235,9 @@ int main()
 
         computeScores(dices, scores);
 
-		Strategy** scoreMap;
-		scoreMap = new Strategy*[13];
-		for(int i=0;i<13;i++)
-			scoreMap[i] = new Strategy[8192];
+		Strategy* scoreMap[8192];
+		for(int i=0;i<8192;i++)
+			scoreMap[i] = new Strategy[64];
 
 		/*
         for(int i=0;i<13;i++)
@@ -228,10 +248,20 @@ int main()
         }
 		*/
 
-        //getMaxScore(scores, picked, maxScores, 1);
         getMaxScore(scores, scoreMap);
-
-		Strategy& bs = scoreMap[12][0x1fff];
+		
+		int maxIdx = 0;
+		int maxScore = 0;
+		for(int i=0;i<64;i++)
+		{
+			if( scoreMap[0x1fff][i].score > maxScore )
+			{
+				maxIdx = i;
+				maxScore = scoreMap[0x1fff][i].score;
+			}
+		}
+		
+		Strategy& bs = scoreMap[0x1fff][maxIdx];
 		//bs.print();
 		for(int i=0;i<13;i++)
 		{

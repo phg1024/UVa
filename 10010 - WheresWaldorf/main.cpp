@@ -15,8 +15,8 @@ inline bool match(char* s1, char* s2, int len)
 inline bool rmatch(char* s1, char* s2, int len)
 {
 	//cout << "matching " << s1 << " and " << s2 << endl;
-	for(int i=0;i<len;i++)
-		if( s1[i] != s2[len-1-i] ) return false;
+	for(int i=0, j=len-1;i<len;i++, j--)
+		if( s1[i] != s2[j] ) return false;
 	return true;
 }
 
@@ -86,7 +86,6 @@ Location findword(char grid[50][50], char gridT[50][50], int rows, int cols, cha
 
 	// search by diagonal
 	// rows x cols grid
-	int diagSize = (cols > rows)?cols:rows;
     for(int j=0;j<rows;j++)
     {
         if( j + l > rows ) break;
@@ -165,16 +164,13 @@ Location findword(char grid[50][50], char gridT[50][50], int rows, int cols, cha
 int main()
 {
 	int ncases;
-	cin >> ncases;
-	cin.ignore();
-	string dummy;
+    scanf("%d", &ncases);
 
 	int rows, cols;
 	int nwords;
 	for(int i=0;i<ncases;i++)
 	{
-		getline(cin, dummy);
-		cin >> rows >> cols;
+        scanf("%d %d", &rows, &cols);
 
 		char grid[50][50];
 		char gridT[50][50];
@@ -191,7 +187,7 @@ int main()
 			}
 		}
 
-		cin >> nwords;
+        scanf("%d", &nwords);
 		char word[128];
 		for(int j=0;j<nwords;j++)
 		{
@@ -201,7 +197,7 @@ int main()
 				word[k] = tolower(word[k]);
 			
 			Location pos = findword( grid, gridT, rows, cols, word );
-			cout << pos.r << ' ' << pos.c << endl;
+			printf("%d %d\n", pos.r, pos.c);
 		}
 		if( i != ncases - 1 ) cout << endl;
 	}
