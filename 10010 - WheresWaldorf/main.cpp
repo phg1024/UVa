@@ -4,7 +4,7 @@
 #include <string>
 using namespace std;
 
-bool match(char* s1, char* s2, int len)
+inline bool match(char* s1, char* s2, int len)
 {
 	//cout << "matching " << s1 << " and " << s2 << endl;
 	for(int i=0;i<len;i++)
@@ -12,7 +12,7 @@ bool match(char* s1, char* s2, int len)
 	return true;
 }
 
-bool rmatch(char* s1, char* s2, int len)
+inline bool rmatch(char* s1, char* s2, int len)
 {
 	//cout << "matching " << s1 << " and " << s2 << endl;
 	for(int i=0;i<len;i++)
@@ -20,9 +20,27 @@ bool rmatch(char* s1, char* s2, int len)
 	return true;
 }
 
-pair<int, int> findword(char grid[50][50], char gridT[50][50], char diag[100][50], int rows, int cols, char word[])
+struct Location
+{
+    Location():r(-1), c(-1){}
+    Location(int row, int column):r(row), c(column){}
+    bool operator<(const Location& l)
+    {
+        if( r < l.r ) return true;
+        else if( r == l.r )
+        {
+            return c < l.c;
+        }
+        else return false;
+    }
+    int r, c;
+};
+
+Location findword(char grid[50][50], char gridT[50][50], int rows, int cols, char word[])
 {
 	int l = strlen( word );
+
+    Location loc(rows+1, cols+1);
 
 	// search by row
 	for(int j=0;j<rows;j++)
@@ -31,10 +49,16 @@ pair<int, int> findword(char grid[50][50], char gridT[50][50], char diag[100][50
 		for(int i=0;i<=cols-l;i++)
 		{
 			if( match( word, grid[j]+i, l ) ) 
-				return make_pair(j+1, i+1);
+            {
+                Location L(j+1, i+1);
+                if( L < loc ) loc = L;
+            }
 
 			if( rmatch( word, grid[j]+i, l ) ) 
-				return make_pair(j+1, i+l);
+            {
+                Location L(j+1, i+l);
+                if( L < loc ) loc = L;
+            }
 		}
 	}
 
@@ -45,20 +69,97 @@ pair<int, int> findword(char grid[50][50], char gridT[50][50], char diag[100][50
 		for(int i=0;i<=rows-l;i++)
 		{
 			if( match( word, gridT[j]+i, l ) ) 
+            {
 				// need to swap x and y
-				return make_pair(i+1, j+1);
+                Location L(i+1, j+1);
+                if( L < loc ) loc = L;
+            }
 
 			if( rmatch( word, gridT[j]+i, l ) ) 
+            {
 				// need to swap x and y
-				return make_pair(i+l, j+1);
+                Location L(i+l, j+1);
+                if( L < loc ) loc = L;
+            }
 		}
 	}
 
 	// search by diagonal
 	// rows x cols grid
 	int diagSize = (cols > rows)?cols:rows;
+    for(int j=0;j<rows;j++)
+    {
+        if( j + l > rows ) break;
+        for(int i=0;i<cols;i++)
+        {
+            if( i + l > cols ) break; 
 
-	return make_pair(-1, -1);
+            // diagonal string starting from (j, i)
+            bool flag = true;
+            for(int k=0;k<l;k++)
+            {
+                if( grid[j+k][i+k] != word[k] )
+                {
+                    flag = false;
+                    break;
+                }
+            }
+            if( flag ) {
+                Location L(j+1, i+1);
+                if( L < loc ) loc = L;
+            }
+            
+            // diagonal string starting from (j, col-i)
+            flag = true;
+            for(int k=0;k<l;k++)
+            {
+                if( grid[j+k][cols-1-i-k] != word[k] )
+                {
+                    flag = false;
+                    break;
+                }
+            }
+            if( flag ) {
+                Location L(j+1, cols-i);
+                if( L < loc ) loc = L;
+            }
+            
+
+            // diagonal string starting from (row-j, i)
+            flag = true;
+            for(int k=0;k<l;k++)
+            {
+                if( grid[rows-1-j-k][i+k] != word[k] )
+                {
+                    flag = false;
+                    break;
+                }
+            }
+            if( flag ) {
+                Location L(rows-j, i+1);
+                if( L < loc ) loc = L;
+            }
+             
+            
+            // diagonal string starting from (row-j, col-i)
+            flag = true;
+            for(int k=0;k<l;k++)
+            {
+                if( grid[rows-1-j-k][cols-1-i-k] != word[k] )
+                {
+                    flag = false;
+                    break;
+                }
+            }
+            if( flag ) {
+                Location L(rows-j, cols-i);
+                if( L < loc ) loc = L;
+            }
+             
+        }
+    }
+
+	return loc;
 }
 
 int main()
@@ -77,7 +178,6 @@ int main()
 
 		char grid[50][50];
 		char gridT[50][50];
-		char diag[200][50];
 
 		for(int y=0;y<rows;y++)
 		{
@@ -91,8 +191,6 @@ int main()
 			}
 		}
 
-		// create diagonal words
-
 		cin >> nwords;
 		char word[128];
 		for(int j=0;j<nwords;j++)
@@ -102,8 +200,8 @@ int main()
 			for(int k=0;k<len;k++)
 				word[k] = tolower(word[k]);
 			
-			pair<int, int> pos = findword( grid, gridT, rows, cols, word );
-			cout << pos.first << ' ' << pos.second << endl;
+			Location pos = findword( grid, gridT, rows, cols, word );
+			cout << pos.r << ' ' << pos.c << endl;
 		}
 		if( i != ncases - 1 ) cout << endl;
 	}
