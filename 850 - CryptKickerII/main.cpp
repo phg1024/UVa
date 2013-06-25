@@ -50,20 +50,21 @@ int main(){
 
     for(int i=0;i<ncases;i++)
     {
-       // input the strings 
-       vector<string> lines;
+        int lineCount = 0;
+        // input the strings 
+        string lines[101];
 
-       while( true )
-       {
-           getline(cin, buf);
-           if( buf.empty() ) break;
-           lines.push_back( buf );
-       }
+        while( true )
+        {
+            getline(cin, lines[lineCount]);
+            if( lines[lineCount].empty() ) break;
+            lineCount++;
+        }
 
        // find the mapping
-       char mapping[128] = {0};
+       char mapping[128];
        bool valid = false;
-       for(size_t j=0;j<lines.size();j++)
+       for(size_t j=0;j<lineCount;j++)
        {
            if( lines[j].size() == key.size() )
            {
@@ -77,19 +78,20 @@ int main(){
 
        if( valid )
        {
-           for(size_t j=0;j<lines.size();j++)
+           for(size_t j=0;j<lineCount;j++)
            {
-               for(size_t k=0;k<lines[j].size();k++)
+               string& str = lines[j];
+               for(size_t k=0;k<str.size();k++)
                {
-                   putchar( mapping[lines[j][k]] );
+                  str[k] = mapping[str[k]]; 
                }
-               cout << endl;
+               cout << str << endl;
            }
        }
        else
-           cout << "No solution." << endl;
+           printf("No solution.\n");
 
-       if( i != ncases - 1 ) cout << endl;
+       if( i != ncases - 1 ) putchar('\n');
     }
     return 0;
 }
