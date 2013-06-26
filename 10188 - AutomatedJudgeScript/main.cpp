@@ -4,52 +4,46 @@
 #include <vector>
 using namespace std;
 
-string filter( const string& s )
+string filter( const vector<string>& s )
 {
 	string v;
 	for(int i=0;i<s.size();i++)
 	{
-		if( s[i] >= '0' && s[i] <= '9' )
-			v.append(s[i]);
+        for(int j=0;j<s[i].size();j++)
+    		if( s[i][j] >= '0' && s[i][j] <= '9' )
+    			v.push_back(s[i][j]);
 	}
 	return v;
 }
 
-bool matchNumber( const vector<string>& answer, const vector<string>& solution )
+bool isAC( const vector<string>& answer, const vector<string>& solution )
 {
-	bool flag = true;
+    if( answer.size() != solution.size() )
+        return false;
+    else
+    {
+        for(int i=0;i<answer.size();i++)
+        {
+            if( answer[i] != solution[i] )
+                return false;
+        }
+        return true;
+    }
+}
 
-	if( answer.size() == solution.size() )
-	{
-		// match for all lines of input
-		for(int i=0;i<answer.size();i++)
-		{
-			string va = filter(answer[i]);
-			string vs = filter(solution[i]);
-			flag &= (va == vs);
-		}
-	}
-	else
-	{
-		// match for the first x lines of input
-		int x = min( answer.size(), solution.size() );
-		for(int i=0;i<x;i++)
-		{
-			string va = filter(answer[i]);
-			string vs = filter(solution[i]);
-			flag &= (va == vs);
-		}
+int judge( const vector<string>& answer, const vector<string>& solution )
+{
+    // 0: AC
+    // 1: WA
+    // 2: PE
+    if( isAC( answer, solution ) ) return 0;
 
-		// then check if the remaining has numbers
-		if( answer.size() > solution.size() )
-		{
-			
-		}
-		else
-		{
-		}
-	}
-	return flag;
+    string va = filter(answer);
+    string vs = filter(solution);
+    if( va != vs )
+        return 1;
+    else
+        return 2;
 } 
 
 int main()
@@ -60,6 +54,7 @@ int main()
 		id++;
 		int n, m;
 		cin >> n;
+        cin.ignore();
 		if( n == 0 ) break;
 		string buf;
 		vector<string> solution;
@@ -70,6 +65,7 @@ int main()
 		}
 
 		cin >> m;
+        cin.ignore();
 		vector<string> answer;
 		for(int i=0;i<m;i++)
 		{
@@ -77,31 +73,25 @@ int main()
 			answer.push_back(buf);
 		}
 
-		if( n == m )
-		{
-			bool flag = true;
-			for(int i=0;i<n;i++)
-				flag &= (solution[i] == answer[i]);
-
-			if( flag )
-				cout << "Run #" << id << ": Accepted" << endl;
-			else
-			{
-				if( matchNumber( solution, answer ) )
-					cout << "Run #" << id << ": Presentation Error" << endl;
-				else
-					cout << "Run #" << id << ": Wrong Answer" << endl;
-			}
-		}
-		else
-		{
-			// WA or PE
-			if( matchNumber( solution, answer ) )
-				cout << "Run #" << id << ": Presentation Error" << endl;
-			else
-				cout << "Run #" << id << ": Wrong Answer" << endl;
-
-		}
+        int result = judge( answer, solution );
+        switch( result )
+        {
+            case 0:
+                {
+                    cout << "Run #" << id << ": Accepted" << endl;
+                    break;
+                }
+            case 1:
+                {
+                    cout << "Run #" << id << ": Wrong Answer" << endl;
+                    break;
+                }
+            case 2:
+                {
+                    cout << "Run #" << id << ": Presentation Error" << endl;
+                    break;
+                }
+        }
 	}
 	return 0;
 }

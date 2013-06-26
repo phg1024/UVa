@@ -28,8 +28,11 @@ Input Set #2: NO
 1 0 1 0
 1
 1010
-1
+2
 The judges are mean!
-1
+k2
+3
 The judges are good!
+2j
+3k
 0
