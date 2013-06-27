@@ -9,31 +9,60 @@ using namespace std;
 set<int> visitedWords;
 map<string, int> dict[17];
 vector<string> wordSet[17];
+vector<set<int> > variants[17];
 
-vector<string> getNeighbor(const map<string,int>& dict, const vector<string>& words, set<int>& visitedWords, const string& word)
+inline bool isDoublet(const string& a, const string& b)
 {
-	vector<string> v;
-	for(size_t i=0;i<word.size();i++)
-	{
-		for(int j='a';j<='z';j++)
-		{
-			string str = word;
-			str[i] = j;
-			if( (dict.find(str) != dict.end()) )
-			{
-				int idx = dict.at(str);
-				if( (visitedWords.find(idx) == visitedWords.end()) )
-				{
-					visitedWords.insert( idx );
-					v.push_back( str );
-				}
-			}
-		}
-	}
-	return v;
+    int count = 0;
+    for(size_t i=0;i<a.size();i++)
+    {
+        if( a[i] != b[i] ) count++;
+    }
+
+    return (count == 1);
 }
 
-vector<string> findPath(const map<string, int>& dict, const vector<string>& words, const string& a, const string& b)
+void findVariants(int size)
+{
+    const map<string, int>& d = dict[size];
+    const vector<string>& words = wordSet[size];
+
+    variants[size].resize( words.size() );
+
+    for(size_t i=0;i<words.size();i++)
+    {
+        const string& a = words[i];
+        for(size_t j=0;j<words.size();j++)
+        {
+            const string& b = words[j];
+            if( isDoublet( a, b ) ) 
+            {
+                variants[size][i].insert(j);
+                variants[size][j].insert(i);
+            }
+        }
+    }
+}
+
+vector<int> getNeighbor(int idx, set<int>& visitedWords, const set<int>& variant)
+{
+    vector<int> v;
+    for(set<int>::iterator it = variant.begin();
+        it != variant.end();
+        it++)
+    {
+        if( visitedWords.find( (*it) ) == visitedWords.end() )
+        {
+            visitedWords.insert( (*it) );
+            v.push_back( (*it) );
+        }
+    }
+
+    return v;
+}
+
+
+vector<int> findPath(const map<string, int>& dict, const vector<string>& words, const vector<set<int> >& variant, const string& a, const string& b)
 {
 	bool found = false;
 	queue<int> Q;
@@ -46,7 +75,6 @@ vector<string> findPath(const map<string, int>& dict, const vector<string>& word
 	while( !Q.empty() )
 	{
 		int wordIdx = Q.front();
-		string word = words[wordIdx];
 		if( wordIdx == targetIdx )
 		{
 			found = true;
@@ -54,30 +82,28 @@ vector<string> findPath(const map<string, int>& dict, const vector<string>& word
 		}
 		Q.pop();
 
-		vector<string> neighbors = getNeighbor(dict, words, visitedWords, word );
-		for(size_t i=0;i<neighbors.size();i++)
-		{
-			int idx = dict.at(neighbors[i]);
-			parent[idx] = wordIdx;
-			Q.push( idx );
-		}
+        vector<int> neighbors = getNeighbor(wordIdx, visitedWords, variant[wordIdx]);
+
+        for(size_t i=0;i<neighbors.size();i++)
+        {
+            int idx = neighbors[i];
+            parent[idx] = wordIdx;
+            Q.push(idx);
+        }
 	}
 
+	vector<int> path;
 	if( found )
 	{
-		vector<string> path;
 		int w = targetIdx;
 		while(true)
 		{
-			path.push_back( words[w] );
+			path.push_back( w );
 			if( parent.at(w) == -1 ) break;
 			w = parent.at(w);
 		};
-
-		return path;
-	}
-	else
-		return vector<string>();
+    }
+	return path;
 }
 
 int main()
@@ -88,8 +114,10 @@ int main()
 		getline(cin, buf);
 		if( buf.empty() ) break;
 
-		dict[buf.size()][buf] = wordSet[buf.size()].size();
-		wordSet[buf.size()].push_back(buf);
+        size_t size = buf.size();
+
+		dict[size][buf] = wordSet[size].size();
+		wordSet[size].push_back(buf);
 	}
 
 	string a, b;
@@ -102,12 +130,14 @@ int main()
 
 		if( a.size() == b.size() )
 		{
+            if( variants[a.size()].empty() ) findVariants( a.size() );
+
 			visitedWords.clear();
-			vector<string> path = findPath( dict[a.size()], wordSet[a.size()], a, b );
+			vector<int> path = findPath( dict[a.size()], wordSet[a.size()], variants[a.size()], a, b );
 			if( !path.empty() )
 			{
-				for(vector<string>::reverse_iterator it = path.rbegin(); it!=path.rend(); it++)
-					cout << (*it) << endl;
+				for(vector<int>::reverse_iterator it = path.rbegin(); it!=path.rend(); it++)
+					cout << wordSet[a.size()][(*it)] << endl;
 			}
 			else		
 			{
