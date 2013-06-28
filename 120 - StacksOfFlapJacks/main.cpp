@@ -167,6 +167,13 @@ int main()
             if( targetPos != 0 )
                 operations.push_back(sequence.size()-targetPos);
         }
+
+        /*
+        for(int i=0;i<sequence.size();i++)
+            cout << sequence[i].r << ' ';
+        cout << endl;
+        */
+
         operations.push_back(0);
         for(int i=0;i<operations.size();i++)
             cout << operations[i] << ' ';
