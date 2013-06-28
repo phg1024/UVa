@@ -1,26 +1,9 @@
-   Unix fmt
+“Before the Gang of Eight and the immigration debate, I think many conservatives as well as some establishment Republican folks saw Senator Rubio as a possible bridge candidate between the conservative Tea Party base of the G.O.P. and more establishment G.O.P. voters,” said Greg Mueller, a conservative public relations executive who opposed the Senate bill. “That position is on much shakier ground today because conservatives and the Tea Party see the immigration bill as a big-government piece of legislation resembling Obamacare.”
 
-The unix fmt program reads lines of text, combining
-and breaking lines so as to create an
-output file
-with lines as close to without exceeding
-72 characters long as possible.  The rules for combining and breaking
-lines are as follows.
+Republicans strongly opposed to the immigration bill said they had little sympathy for Mr. Rubio.
 
-   1.  A new line may be started anywhere there is a space in the input.
-If a new line is started, there will be no trailing blanks at the end of the previous line
-or at the beginning of the new line.
+“I don’t think we’re doing any damage to him,” said Representative Tim Huelskamp, Republican of Kansas. “I think he’s done damage to himself with the amnesty bill.”
 
-   2.  A line break in the input may be eliminated in the output, provided
-it is not followed by a space or another line break.  If a line
-break is eliminated, it is replaced by a space.
+Alex Conant, Mr. Rubio’s spokesman, said: “Immigration is a personal issue for Senator Rubio, and he took it on because he thought it was the right thing to do. There may be some political implications, especially in the short term, but it wasn’t an issue he believed he could ignore. We don’t expect any parades for our work on this.”
 
-this is a stupid line with a very looooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooog word.
-anoooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooother long word.
-
-another word way too looooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooog
-annnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnd cool.
-
-
-two equaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaly looooooooooooooooooooooooooooooog words, what do you say?
- i say cool!
+On Thursday, Mr. Rubio had little cover from his party’s right flank, much less a parade.  Not wanting to tempt primary opponents next year, the top two Senate Republican leaders — Mitch McConnell of Kentucky and John Cornyn of Texas — cast “no” votes.  And a potential 2016 presidential primary rival for Mr. Rubio, Senator Rand Paul of Kentucky, also voted against the legislation, despite making a show of announcing his general support for an immigration overhaul earlier in the year.

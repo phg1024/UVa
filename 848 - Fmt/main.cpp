@@ -25,7 +25,7 @@ string breakline(const string& src, size_t len)
         //cout << wbegin << " to " << wend << endl; 
         if( src[wend] == ' ' )
         {
-            if( buf.size() + (wend - wbegin) + 1 < len )
+            if( buf.size() + (wend - wbegin) <= len )
             {
                 //cout << src.substr(wbegin, wend - wbegin) << endl;
                 // put the word into the buffer
@@ -35,20 +35,50 @@ string breakline(const string& src, size_t len)
             {
                 //cout << src.substr(wbegin, wend - wbegin) << endl;
                 // break the line 
-                result = result + buf + "\n";
-                buf = src.substr(wbegin, wend - wbegin);
+                result = result + buf;
+                result[result.size()-1] = '\n';
+
+                buf = src.substr(wbegin, wend - wbegin) + " ";
+                if( buf.size() > len )
+                {
+                    result = result + buf;
+                    result[result.size()-1] = '\n';
+                    buf = "";
+                }
             }
         }
         else
         {
-            buf = buf + src.substr(wbegin, wend - wbegin);
-            result = result + buf;
+            if( buf.size() + (wend-wbegin) <= len )
+            {
+                buf = buf + src.substr(wbegin, wend - wbegin);
+                result = result + buf;
+            }
+            else
+            {
+                result = result + buf;
+                result[result.size()-1] = '\n';
+                buf = src.substr(wbegin, wend - wbegin);
+                result += buf;
+            }
         }
 
         wbegin = wend + 1;
     }
 
     return result;
+}
+
+string trim( const string& s )
+{
+    int pos = s.size()-1;
+    while( s[pos] == ' ' )
+    {
+        pos--;
+        if( pos == -1 ) break;
+    }
+
+    return s.substr(0, pos+1);
 }
 
 int main()
@@ -61,7 +91,6 @@ int main()
     {
         buf = buf + line + "\n";
     }
-    buf[buf.size()-1] = '\0';
 
     // merging lines 
     size_t curPos = 0;
@@ -99,6 +128,8 @@ int main()
             continue;
         }
 
+        srcline = trim( srcline );
+
         string dstline;
         if( srcline.size() <= LINE_LENGTH )
             dstline = srcline;
@@ -108,7 +139,7 @@ int main()
         }
 
         // break the line
-        cout << dstline << endl;
+        cout << trim(dstline) << endl;
     }
     return 0;
 }
