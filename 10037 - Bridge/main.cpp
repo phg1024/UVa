@@ -2,101 +2,90 @@
 #include <sstream>
 #include <string>
 #include <cstdlib>
+#include <cstdio>
 #include <algorithm>
-#include <queue>
-#include <map>
 using namespace std;
 
-pair<int, int> chooseBestPair(deque<int>& Q, int speed[])
+int crossBridge(int Q[1000], int count, stringstream& str)
 {
-    std::sort(Q.begin(), Q.end(), std::less<int>());
+	switch( count )
+	{
+	case 0:
+		{
+			return 0;
+		}
+	case 1:
+		{
+			str << Q[0] << endl;
+			return Q[0];
+		}
+	case 2:
+		{
+			str << Q[0] << ' ' << Q[1] << endl;
+			return Q[1];
+		}
+	case 3:
+		{
+			str << Q[0] << ' ' << Q[1] << endl;
+			str << Q[0] << endl;
+			str << Q[0] << ' ' << Q[2] << endl;
+			return Q[0] + Q[1] + Q[2];
+		}
+	default:
+		{
+			// AB A YZ B
+			int t1 = Q[0] + Q[1] * 2 + Q[count-1];
 
-    int p1, p2;
-    if( Q[0] == speed[0] && Q[1] == speed[1] )
-    {
-        p1 = Q.front();
-        Q.pop_front();
-        p2 = Q.front();
-        Q.pop_front();
+			// AZ A AY A
+			int t2 = Q[0] * 2 + Q[count-2] + Q[count-1];
 
-        return make_pair(p1, p2);
-    }
-    else
-    {
-        p1 = Q.back();
-        Q.pop_back();
-        p2 = Q.back();
-        Q.pop_back();
-
-        return make_pair(p2, p1);
-    }
-
+			if( t1 <= t2 )
+			{
+				// AB A YZ B
+				str << Q[0] << ' ' << Q[1] << endl;
+				str << Q[0] << endl;
+				str << Q[count-2] << ' ' << Q[count-1] << endl;
+				str << Q[1] << endl;
+				return t1 + crossBridge( Q, count-2, str );
+			}
+			else
+			{
+				// AZ A AY A
+				str << Q[0] << ' ' << Q[count-1] << endl;
+				str << Q[0] << endl;
+				str << Q[0] << ' ' << Q[count-2] << endl;
+				str << Q[0] << endl;
+				return t2 + crossBridge( Q, count-2, str );
+			}
+		}
+	}
 }
 
 int main()
 {
-    int ncases;
-    cin >> ncases;
+	int ncases;
+	scanf("%d", &ncases);
 
-    while( ncases > 0 )
-    {
-        int npeople;
-        cin >> npeople;
+	while( ncases > 0 )
+	{
+		int npeople;
+		scanf("%d", &npeople);
 
-        if( npeople == 1 )
-        {
-            int val;
-            cin >> val;
-            cout << val << endl;
-            cout << val << endl;
-        }
-        else
-        {
+		int speed[1000] = {0};
+		for(int i=0;i<npeople;i++)
+		{
+			scanf("%d", speed+i);
+		}
 
-        int speed[1000];
-        for(int i=0;i<npeople;i++)
-            cin >> speed[i];
+		std::sort(speed, speed+npeople, std::less<int>());
 
-        std::sort(speed, speed+npeople, std::less<int>());
+		stringstream output;
+		int t = crossBridge( speed, npeople, output );
 
-        deque<int> left;
-        deque<int> right;
-
-        for(int i=0;i<npeople;i++)
-            left.push_back( speed[i] );
-
-        string output;
-        stringstream ss;
-        int t = 0;
-        while( true )
-        {
-            pair<int, int> bestPair = chooseBestPair( left, speed );
-            int p1 = bestPair.first, p2 = bestPair.second;
-
-            ss << p1 << ' ' << p2 << endl;
-            t += p2;
-
-            if( left.empty() )
-                break;
-            right.push_back(p1);
-            right.push_back(p2);
-
-            std::sort(right.begin(), right.end(), std::less<int>());
-
-            int pr = right.front();
-            right.pop_front();
-            ss << pr << endl;
-
-            t += pr;
-            left.push_back(pr);
-        }
-
-        cout << t << endl;
-        cout << ss.str();
-
-        }
-        ncases--;
-        if( ncases > 0 ) cout << endl;
-    }
-    return 0;
+		printf("%d\n", t);
+		printf("%s", output.str().c_str());
+		ncases--;
+		if( ncases > 0 ) putchar('\n');
+	}
+	return 0;
 }
