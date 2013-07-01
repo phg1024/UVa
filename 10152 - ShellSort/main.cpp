@@ -20,28 +20,30 @@ void reorder( deque<Turtle>& turtles )
 {
 	while( true )
 	{
-		vector<int> idx;
+        int currentMax = turtles[0].rank;
+        int idx = -1, maxRank = -1;
 		for(int i=1;i<turtles.size();i++)
 		{
-			if( turtles[i].rank < i || turtles[i].rank < turtles[i-1].rank)
-				idx.push_back(i);
+            if( turtles[i].rank < currentMax )
+            {
+                // out of order turtle
+                if( turtles[i].rank > maxRank )
+                {
+                    idx = i;
+                    maxRank = turtles[i].rank;
+                }
+            }
+            else
+            {
+                currentMax = turtles[i].rank;
+            }
 		}
-		if( idx.empty() ) break;
+        if( idx == -1 ) break;
 		
-		vector<Turtle> moveOuts;
-		for(int i=0;i<idx.size();i++)
-			moveOuts.push_back(turtles[idx[i]]);
-		
-		std::sort(moveOuts.begin(), moveOuts.end(), std::greater<Turtle>());
-		
-		for(int i=idx.size()-1;i>=0;i--)
-			turtles.erase(turtles.begin()+idx[i]);
-		
-		for(int i=0;i<moveOuts.size();i++)
-		{
-            cout << moveOuts[i].name << endl;
-			turtles.push_front(moveOuts[i]);
-		}
+        Turtle t = turtles[idx];
+        cout << t.name << endl;
+		turtles.erase(turtles.begin()+idx);
+	    turtles.push_front( t );	
 	}
 }
 
@@ -78,7 +80,7 @@ int main()
 		}
 		
 		reorder( turtles );
-			
-		if( --ncases != 0 ) cout << endl;
+        ncases --;
+        cout << endl;
 	}
 }
