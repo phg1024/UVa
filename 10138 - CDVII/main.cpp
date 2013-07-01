@@ -3,12 +3,27 @@
 #include <sstream>
 #include <string>
 #include <algorithm>
+#include <map>
 using namespace std;
 
 struct Time
 {
 	friend istream& operator>>(istream& is, Time& t);
 	friend ostream& operator<<(ostream& os, Time& t);
+
+	bool operator<(const Time& t) const
+	{
+		if( dd < t.dd ) return true;
+		else if( dd == t.dd )
+		{
+			if( hh < t.hh ) return true;
+			else if( hh == t.hh )
+				return mm < t.mm;
+			else
+				return false;
+		}
+		else return false;
+	}
 
 	int MM, dd, hh, mm; 
 };
@@ -42,6 +57,15 @@ struct Record
 	string license;
 	string type;
 	Time t;
+
+	bool operator<(const Record r) const
+	{
+		if( license < r.license ) return true;
+		else if( license == r.license )
+			return t < r.t;
+		else
+			return false;
+	}
 };
 
 istream& operator>>(istream& is, Record& r)
@@ -76,9 +100,15 @@ int main()
 			ss >> records[count++];
 		}
 
+		std::sort(records, records+count, std::less<Record>());
+
 		for(int i=0;i<count;i++)
 			cout << setw(20) << setfill(' ') << records[i].license << ' ' << records[i].t << ' ' << records[i].type << endl;
 
+		map<string, int> costs;
+		for(int i=0;i<count;i++)
+		{
+		}
 		ncases--;
 	}
 	return 0;
