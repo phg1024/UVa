@@ -4,6 +4,7 @@
 #include <string>
 #include <algorithm>
 #include <map>
+#include <cmath>
 using namespace std;
 
 struct Time
@@ -38,25 +39,13 @@ istream& operator>>(istream& is, Time& t)
 	return is;
 }
 
-ostream& operator<<(ostream& os, Time& t)
-{
-	os  << setw(2) << setfill('0')
-		<< t.MM << ':'
-		<< setw(2) << setfill('0')
-		<< t.dd << ':'
-		<< setw(2) << setfill('0')
-		<< t.hh << ':'
-		<< setw(2) << setfill('0')
-		<< t.mm;
-	return os;
-}
-
 struct Record
 {
 	friend istream& operator>>(istream& is, Record& r);
 	string license;
 	string type;
 	Time t;
+    int pos;
 
 	bool operator<(const Record r) const
 	{
@@ -70,7 +59,7 @@ struct Record
 
 istream& operator>>(istream& is, Record& r)
 {
-	is >> r.license >> r.t >> r.type;
+	is >> r.license >> r.t >> r.type >> r.pos;
 	return is;
 }
 
@@ -94,7 +83,6 @@ int main()
 		{
 			getline( cin, buf );
 			if( buf.empty() ) break;
-			cout << buf << endl;
 			stringstream ss;
 			ss.str(buf);
 			ss >> records[count++];
@@ -102,14 +90,48 @@ int main()
 
 		std::sort(records, records+count, std::less<Record>());
 
-		for(int i=0;i<count;i++)
-			cout << setw(20) << setfill(' ') << records[i].license << ' ' << records[i].t << ' ' << records[i].type << endl;
-
-		map<string, int> costs;
+		map<string, float> costs;
 		for(int i=0;i<count;i++)
 		{
+            if( costs.find( records[i].license ) == costs.end() )
+            {
+                // new license
+                // account charge
+                costs[records[i].license] = 2.0;
+            }
+            if( i == count - 1 ) break;
+
+            // definitely unpaired
+            if( records[i+1].license != records[i].license ) continue;
+
+            // ignore unpaired exit
+            if( records[i].type == "exit" ) continue;
+            else
+            {
+                // ignore unpaired exit
+                if( records[i+1].type == "enter" ) continue;
+                else
+                {
+                    // a pair
+                    float rate = fares[records[i].t.hh];
+                    float fee = rate * fabs(records[i+1].pos - records[i].pos) / 100.0 + 1.0;
+                    costs[records[i].license] += fee;
+                    i++;
+                }
+            }
 		}
-		ncases--;
+
+        for(map<string, float>::iterator it=costs.begin();
+            it != costs.end();
+            ++it)
+        {
+            if( (*it).second > 2.0 )
+            {
+                cout << (*it).first << ' ' 
+                     << '$' << setprecision(2) << fixed << (*it).second << endl;
+            }
+        }
+		if( --ncases != 0 ) cout << endl;
 	}
 	return 0;
 }
