@@ -4,21 +4,20 @@ using namespace std;
 
 struct Job
 {
+	bool operator<(const Job& j) const
+	{
+		if( ratio > j.ratio ) return true;
+		else if( ratio == j.ratio )
+			return id < j.id;
+		else
+			return false;
+	}
+
+	float ratio;
 	int t;
 	int s;
 	int id;
 };
-
-bool comp(const Job& a, const Job& b)
-{
-	float ratioa = a.s / (float)a.t;
-	float ratiob = b.s / (float)b.t;
-	if( ratioa > ratiob ) return true;
-	else if( ratioa == ratiob )
-		return a.id < b.id;
-	else
-		return false;
-}
 
 int main()
 {
@@ -30,22 +29,23 @@ int main()
 		int njobs;
 		cin >> njobs;
 
-		Job jobs[1000];
+		Job jobs[1001];
 
-		for(int i=0;i<njobs;i++)
+		for(int i=1;i<=njobs;i++)
 		{
-			jobs[i].id = i+1;
 			cin >> jobs[i].t >> jobs[i].s;
+			jobs[i].id = i;
+			jobs[i].ratio = jobs[i].s / (float) jobs[i].t;
 		}
 
-		std::sort(jobs, jobs+njobs, comp);
+		std::sort(jobs+1, jobs+njobs+1, std::less<Job>());
 
-		for(int i=0;i<njobs;i++)
+		for(int i=1;i<=njobs;i++)
 		{
 			cout << jobs[i].id;
-			if( i != njobs - 1 ) cout << ' ';
+			if( i != njobs ) cout << ' ';
+			else cout << endl;
 		}
-		cout << endl;
 
 		if( (--ncases) != 0 ) 
 			cout << endl;
