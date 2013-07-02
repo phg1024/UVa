@@ -1,86 +1,41 @@
-#include <iostream>
-#include <string>
-#include <deque>
-#include <map>
-#include <vector>
-#include <algorithm>
+#include <cstring>
+#include <cstdio>
+#include <cstdlib>
 using namespace std;
-
-struct Turtle
-{
-	bool operator>(const Turtle& t) const
-	{
-		return rank > t.rank;
-	}
-	string name;
-	int rank;
-};
-
-void reorder( deque<Turtle>& turtles )
-{
-	while( true )
-	{
-        int currentMax = turtles[0].rank;
-        int idx = -1, maxRank = -1;
-		for(int i=1;i<turtles.size();i++)
-		{
-            if( turtles[i].rank < currentMax )
-            {
-                // out of order turtle
-                if( turtles[i].rank > maxRank )
-                {
-                    idx = i;
-                    maxRank = turtles[i].rank;
-                }
-            }
-            else
-            {
-                currentMax = turtles[i].rank;
-            }
-		}
-        if( idx == -1 ) break;
-		
-        Turtle t = turtles[idx];
-        cout << t.name << endl;
-		turtles.erase(turtles.begin()+idx);
-	    turtles.push_front( t );	
-	}
-}
 
 int main()
 {
 	int ncases;
-	cin >> ncases;
+    scanf("%d\n", &ncases);
 	
-	while( ncases > 0 )
+	while( ncases-- > 0 )
 	{
 		int n;
-		cin >> n;
-		cin.ignore();
-		deque<Turtle> turtles;
-		turtles.resize(n);
-		string buf;
+        scanf("%d\n", &n);
+
+        char src[200][128] = {0};
+        char dst[200][128] = {0};
+
 		for(int i=0;i<n;i++)
 		{
-			getline(cin, buf);
-			Turtle t;
-			turtles[i].name = buf;
-		}
-		
-		map<string, int> order;
-		for(int i=0;i<n;i++)
-		{
-			getline(cin, buf);
-			order[buf] = i;
+            fgets(src[i], 128, stdin);
 		}
 		
 		for(int i=0;i<n;i++)
 		{
-			turtles[i].rank = order.at(turtles[i].name);
+            fgets(dst[i], 128, stdin);
 		}
 		
-		reorder( turtles );
-        ncases --;
-        cout << endl;
+        int i, j;
+		for(i=n-1, j=n-1;i>=0;i--)
+		{
+            if( strcmp(dst[j], src[i]) == 0 ) 
+                j--;
+		}
+
+        while( j>=0 )
+            printf("%s", dst[j--]);
+		
+        putchar('\n');
 	}
 }
