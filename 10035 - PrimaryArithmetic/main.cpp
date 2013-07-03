@@ -1,26 +1,27 @@
 #include <iostream>
 #include <string>
+#include <cstdio>
+#include <cstring>
 #include <cstdlib>
 #include <cmath>
 #include <iomanip>
 #include <algorithm>
 using namespace std;
 
-int add_bignum(const string& a, const string& b)
+int add_bignum(char a[], char b[])
 {
-    string n1 = a;
-    string n2 = b;
-    std::reverse(n1.begin(), n1.end());
-    std::reverse(n2.begin(), n2.end());
+    int L1 = strlen(a);
+    int L2 = strlen(b);
+    std::reverse(a, a+L1);
+    std::reverse(b, b+L2);
 
-
-    int L = min(n1.size(), n2.size());
+    int L = min(L1, L2);
 
     char c[12] = {0};
     int carry = 0;
     for(int i=0;i<L;i++)
     {
-        int val = (n1[i] - '0') + (n2[i] - '0') + c[i];
+        int val = (a[i] - '0') + (b[i] - '0') + c[i];
         if( val >= 10 )
         {
             carry++;
@@ -30,11 +31,11 @@ int add_bignum(const string& a, const string& b)
         else
             c[i] = val;
     }
-    if( n1.size() > n2.size() )
+    if( L1 > L2 )
     {
-        for(int i=L;i<n1.size();i++)
+        for(int i=L;i<L1;i++)
         {
-            int val = (n1[i] - '0') + c[i];
+            int val = (a[i] - '0') + c[i];
             if( val >= 10 )
             {
                 carry++;
@@ -47,9 +48,9 @@ int add_bignum(const string& a, const string& b)
     }
     else
     {
-        for(int i=L;i<n2.size();i++)
+        for(int i=L;i<L2;i++)
         {
-            int val = (n2[i] - '0') + c[i];
+            int val = (b[i] - '0') + c[i];
             if( val >= 10 )
             {
                 carry++;
@@ -68,13 +69,11 @@ int add_bignum(const string& a, const string& b)
 int main(){
     while( true )
     {
-        string a, b;
-        cin >> a >> b;
+        char a[11], b[11];
+        scanf("%s %s\n", a, b);
 
-        if( a == "0" && b == "0" )
+        if( a[0] == '0' && b[0] == '0' )
             break;
-        else if( a == "0" || b == "0" )
-            cout << "No carry operation." << endl;
         else
         {
             int carry = add_bignum(a, b);
@@ -83,17 +82,17 @@ int main(){
             {
                 case 0:
                     {
-                    cout << "No carry operation." << endl;
+                    printf("%s\n", "No carry operation.");
                     break;
                     }
                 case 1:
                     {
-                    cout << "1 carry operation." << endl;
+                    printf("%s\n", "1 carry operation.");
                     break;
                     }
                 default:
                     {
-                    cout << carry << " carry operations." << endl;
+                    printf("%d %s\n", carry, "carry operations.");
                     break;
                     }
             }
