@@ -7,8 +7,8 @@ using namespace std;
 
 string lower(const string& str)
 {
-    string s;
-    std::transform(str.begin(), str.end(), s.begin(), ::tolower);
+    string s = str;
+    std::transform(s.begin(), s.end(), s.begin(), ::tolower);
     return s;
 }
 
@@ -54,14 +54,13 @@ struct Team
 void parse(const string& str, string name[], int goals[])
 {
     int pounds[2];
-    int at;
     pounds[0] = str.find_first_of('#');
     pounds[1] = str.find_last_of('#');
-    at = str.find_first_of('@');
     name[0] = str.substr(0, pounds[0]);
-    name[1] = str.substr(pounds[1]+1, str.size()-pounds[1]);
-    goals[0] = atoi(str.substr(pounds[0]+1, at - pounds[0] - 1).c_str());
-    goals[1] = atoi(str.substr(at+1, pounds[1] - at - 1).c_str());
+    name[1] = str.substr(pounds[1]+1);
+    string scores = str.substr(pounds[0]+1, pounds[1]-pounds[0]-1);
+    char dummy;
+    sscanf(scores.c_str(),"%d%c%d", &(goals[0]), &dummy, &(goals[1]));
 }
 
 int main()
@@ -106,51 +105,35 @@ int main()
             Team& team0 = teams[idx[0]];
             Team& team1 = teams[idx[1]];
 
+            team0.goalsScored+=goals[0];
+            team0.goalsAgainst+=goals[1];
+            team0.games++;
+
+            team1.goalsScored+=goals[1];
+            team1.goalsAgainst+=goals[0];
+            team1.games++;
+ 
             if( goals[0] > goals[1] )
             {
                 // team 0 wins
                 team0.points+=3;
                 team0.wins++;
-
-                team0.goalsScored+=goals[0];
-                team0.goalsAgainst+=goals[1];
-                team0.games++;
-
                 team1.loses++;
-
-                team1.goalsScored+=goals[1];
-                team1.goalsAgainst+=goals[0];
-                team1.games++;
-            }
+           }
             else if( goals[0] < goals[1] )
             {
                 // team 1 wins
                 team1.points+=3;
                 team1.wins++;
-
-                team1.goalsScored+=goals[1];
-                team1.goalsAgainst+=goals[0];
-                team1.games++;
-
                 team0.loses++;
-                team0.goalsScored+=goals[0];
-                team0.goalsAgainst+=goals[1];
-                team0.games++;
             }
             else
             {
                 // tie
                 team1.ties++;
                 team1.points+=1;
-                team1.goalsScored+=goals[1];
-                team1.goalsAgainst+=goals[0];
-                team1.games++;
-
                 team0.ties++;
                 team0.points+=1;
-                team0.goalsScored+=goals[0];
-                team0.goalsAgainst+=goals[1];
-                team0.games++;
             }
         }
 

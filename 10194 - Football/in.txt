@@ -13,15 +13,17 @@ Brazil#3@0#Morocco
 Morocco#3@0#Scotland
 Brazil#1@2#Norway
 Some strange tournament
-5
+6
 Team A
 Team B
 Team C
 Team D
 Team E
-5
+Team A1
+6
 Team A#1@1#Team B
 Team A#2@2#Team C
 Team A#0@0#Team D
 Team E#2@1#Team C
 Team E#1@2#Team D
+Team A1#1@1#Team E
