@@ -24,11 +24,9 @@ void add(char *a, char *b, int& L)
         else
             a[i] = val;
     } 
+    // carry over
     if( a[L] != 0 )
-    {
-        a[L+1] = 0;
         L++;
-    }
 }
 
 void revert(char *a, char *b, int L)
@@ -58,14 +56,13 @@ int main(){
 
     while( ncases-- > 0 )
     {
-        char a[32]={0};
+        char a[16]={0};
         scanf("%s", a);
         int L = strlen(a);
-        std::reverse(a, a+L);
         for(int i=0;i<L;i++)
             a[i] -= '0';
 
-        char b[32]={0};
+        char b[16]={0};
         int count = 0;
         while( !isPalindrome( a, L ) )
         {
@@ -74,10 +71,10 @@ int main(){
             count++;
         }
 
+        printf("%d ", count);
         for(int i=0;i<L;i++)
-            a[i] += '0';
-
-        printf("%d %s\n", count, a);
+            printf("%d", a[i]);
+        putchar('\n');
     }
     return 0;
 }
