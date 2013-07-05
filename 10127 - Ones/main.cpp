@@ -1,139 +1,39 @@
 #include <iostream>
 #include <string>
+#include <vector>
 #include <cstdio>
 #include <cstring>
 #include <cmath>
 #include <algorithm>
 using namespace std;
 
-static const int MAXSIZE = 10000;
+// suppose:
+// k * n + r_L = 10^(L-1) + 10^(L-2) + ... + 10^0
+// k * n + r_L = (10^L - 1) / 9
+// let:
+// r_j = mod[ (10^j - 1) / 9, n ]
+// then
+// r_(j+1) = mod[ 10 * r_j + 1, n ]
+// the first r_i == 0 is the solution 
 
-int comp(char* a, int La, char* b, int Lb)
+int findMultiple(unsigned int num)
 {
-    if( La < Lb ) return -1;
-    if( La == Lb )
+    vector<int> rem;
+
+    int val = 1;
+    while( val <= num )
     {
-        for(int i=0;i<La;i++)
-            if( a[i] != b[i] )
-            {
-                if( a[i] > b[i] ) return 1;
-                else return -1;
-            }
-
-        return 0;
+        rem.push_back( val % num );
+        val = val * 10 + 1;
     }
-    else
-        // a > b
-        return 1;
-}
 
-void print(char* str, int L)
-{
-    for(int i=0;i<L;i++)
-        putchar('0' + str[i]);
-    putchar('\n');
-}
-
-// a div b
-int division(char* a, int La, char* b, int Lb)
-{
-    /*
-    printf("division:\n");
-    print(a, La);
-    print(b, Lb);    
-    */
-    int type = comp(a, La, b, Lb);
-    switch( type )
+    int L = rem.size();
+    while( rem.back() != 0 )
     {
-        case -1:
-            {
-                return -1;
-            }
-        case 0:
-            {
-                return 0;
-            }
-        case 1:
-            {
-                int result;
-                // do the division
-                if( comp( a, Lb, b, Lb ) > 0 )
-                {
-                    // the first Lb digits are large enough
-                    while( comp( a, Lb, b, Lb ) > 0 )
-                    {
-                        // subtract b from a
-                        for(int i=Lb-1;i>=0;i--)
-                        {
-                            char val = a[i] - b[i];
-                            if( val < 0 )
-                            {
-                                a[i-1]--;
-                                a[i] = val + 10;
-                            }
-                            else
-                            {
-                                a[i] = val;
-                            }
-                        }
-                    }
-
-                    if( a[0] == 0 )
-                    {
-                        result = division( a+1, La-1, b, Lb ); 
-                    }
-                    else
-                    {
-                        result = division( a, La, b, Lb ); 
-                    }
-                }
-                else
-                {
-                    // do the division with the first Lb+1 digits
-                    while( a[0] != 0 || comp( a+1, Lb, b, Lb) > 0 )
-                    {
-                        for(int i=Lb-1, j=Lb;i>=0;i--,j--)
-                        {
-                            char val = a[j] - b[i];
-                            if( val < 0 )
-                            {
-                                a[j-1]--;
-                                a[j] = val + 10;
-                            }
-                            else
-                                a[j] = val;
-                        }
-                    }
-
-                    if( a[1] == 0 )
-                    {
-                        result = division( a+2, La-2, b, Lb );
-                    }
-                    else
-                    {
-                        result = division( a+1, La-1, b, Lb );
-                    }
-                }
-
-                return result;
-            }
+        rem.push_back( (10 * rem.back() + 1) % num );
     }
-}
 
-void int2str(int num, char* str, int &L)
-{
-    // num is between 0 and 10000
-    // at most 14 bits
-    sprintf(str, "%d", num);
-    L = strlen(str);
-    for(int i=0;i<L;i++)
-        str[i] -= '0';
-}
-
-void ones(char* str, int L)
-{
-    for(int i=0;i<L;i++)
-        str[i] = 1;
+    return rem.size();
 }
 
 int main()
@@ -141,24 +41,7 @@ int main()
     unsigned int num;
     while( scanf("%d", &num) != EOF )
     {
-        char a[6] = {0};
-        int La = 0;
-        int2str(num, a, La);
-
-        char product[MAXSIZE] = {0};
-        int L = La + 1; 
-        while( L < MAXSIZE )
-        {
-            ones( product, L );
-            int res = division( product, L, a, La ); 
-
-            if( res == 0 )
-                break;
-
-            L++;
-        }
-
-        printf("%d\n", L);
+        printf("%d\n", findMultiple( num ));
     }
     return 0;
 }
