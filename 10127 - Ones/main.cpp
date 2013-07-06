@@ -1,10 +1,6 @@
-#include <iostream>
-#include <string>
-#include <vector>
 #include <cstdio>
 #include <cstring>
 #include <cmath>
-#include <algorithm>
 using namespace std;
 
 // suppose:
@@ -16,32 +12,27 @@ using namespace std;
 // r_(j+1) = mod[ 10 * r_j + 1, n ]
 // the first r_i == 0 is the solution 
 
-int findMultiple(unsigned int num)
-{
-    vector<int> rem;
-
-    int val = 1;
-    while( val <= num )
-    {
-        rem.push_back( val % num );
-        val = val * 10 + 1;
-    }
-
-    int L = rem.size();
-    while( rem.back() != 0 )
-    {
-        rem.push_back( (10 * rem.back() + 1) % num );
-    }
-
-    return rem.size();
-}
-
 int main()
 {
-    unsigned int num;
+    int num;
+    int rem, L;
     while( scanf("%d", &num) != EOF )
     {
-        printf("%d\n", findMultiple( num ));
+        rem = L = 1;
+        // skip the first few modulo operations
+        while( rem < num )
+        {
+            rem = rem * 10 + 1;
+            L++;
+        }
+
+        while( rem != 0 )
+        {
+            rem = (10 * rem + 1) % num;
+            L++;
+        }
+
+        printf("%d\n", L);
     }
     return 0;
 }
