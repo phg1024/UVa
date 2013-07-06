@@ -17,11 +17,8 @@ struct Fraction
 
     bool operator<(const Fraction& f) const
     {
-        if( u == 0 ) return true;
-        else
-        {
-            return u * f.d < f.u * d;
-        }
+        // no need to consider u == 0 or d == 0
+        return u * f.d < f.u * d;
     }
 
     bool operator==(const Fraction& f) const
@@ -50,7 +47,8 @@ int main()
         Fraction target(m, n);
 
         int pos = 0;
-        char rep[16384] = {0};
+        // sufficiently large
+        char rep[8192] = {0};
 
         while( mid != target  )
         {
