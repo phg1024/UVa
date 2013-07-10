@@ -10,7 +10,7 @@ using namespace std;
 
 struct BigInt
 {
-    static const size_t PRECISION = 4096;
+    static const size_t PRECISION = 40;
     BigInt():
         sign(Positive),
         L(1)
@@ -18,10 +18,10 @@ struct BigInt
         memset(data, 0, sizeof(char)*PRECISION);
     }
 
-    BigInt(long int num)
+    BigInt(int num)
     {
         memset(data, 0, sizeof(char)*PRECISION);
-        sprintf(data, "%ld", std::abs(num));
+        sprintf(data, "%d", std::abs(num));
         L = strlen(data);
         std::reverse(data, data+L);
         for(int i=0;i<L;i++)
@@ -37,16 +37,18 @@ struct BigInt
         sign(other.sign),
         L(other.L)
     {
-        memcpy(data, other.data, sizeof(char)*PRECISION);
+        memset(data, 0, sizeof(char)*PRECISION);
+        memcpy(data, other.data, sizeof(char)*other.L);
     }
 
     BigInt& operator=(const BigInt& other)
     {
         if( this != &other )
         {
+            memset(data, 0, sizeof(char)*PRECISION);
             sign = other.sign;
             L = other.L;
-            memcpy(data, other.data, sizeof(char)*PRECISION);
+            memcpy(data, other.data, sizeof(char)*other.L);
         }
         return (*this);
     }
@@ -132,7 +134,7 @@ BigInt BigInt::operator+(const BigInt& rhs) const
 
         size_t maxL = max(v.L, rhs.L);
 
-        v.L = maxL + 1;
+        v.L = maxL;
 
         for(size_t i=0;i<maxL;i++)
         {
@@ -146,7 +148,7 @@ BigInt BigInt::operator+(const BigInt& rhs) const
                 v(i) = val;
         }
 
-        v.zero_justify();
+        if( v(v.L) != 0 ) v.L++;
 
         return v;
     }
