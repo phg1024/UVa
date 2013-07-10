@@ -16,7 +16,6 @@ struct BigInt
 {
     static const size_t PRECISION = 512; 
     BigInt():
-        sign(Positive),
         L(1)
     {
         memset(data, 0, sizeof(char)*PRECISION);
@@ -29,15 +28,9 @@ struct BigInt
         std::reverse(data, data+L);
         for(int i=0;i<L;i++)
             data[i] -= '0';
-
-        if( num < 0 )
-            sign = Negative;
-        else
-            sign = Positive;
     }
 
     BigInt(const BigInt& other):
-        sign(other.sign),
         L(other.L)
     {
 		memset(data, 0, sizeof(char)*PRECISION);
@@ -49,7 +42,6 @@ struct BigInt
         if( this != &other )
         {
 			memset(data, 0, sizeof(char)*PRECISION);
-            sign = other.sign;
             L = other.L;
             memcpy(data, other.data, sizeof(char)*other.L);
         }
@@ -66,378 +58,65 @@ struct BigInt
         return data[pos];
     }
 
-    BigInt negate() const
-    {
-        BigInt v = (*this);
-        v.sign = (v.sign == Positive)?Negative:Positive;
-        return v;
-    }
-
-    BigInt abs() const
-    {
-        BigInt v = (*this);
-        v.sign = Positive;
-        return v;
-    }
-
-    BigInt leftShift(size_t n) const
-    {
-        BigInt v;
-        memcpy(v.data + n, data, sizeof(char)*L);
-        v.L = L + n;
-        v.sign = sign;
-        return v;
-    }
-
-    BigInt rightShift(size_t n) const
-    {
-        BigInt v;
-        memcpy(v.data, data + n, sizeof(char)*(L-n));
-        v.L = L - n;
-        v.sign = sign;
-        return v;
-    }
-
-    void zero_justify();
-
     BigInt operator+(const BigInt& rhs) const;
-    BigInt operator+(int rhs) const;
-    BigInt operator-(const BigInt& rhs) const;
-    BigInt operator-(int rhs) const;
-    BigInt operator*(const BigInt& rhs) const;
-    BigInt operator*(int rhs) const;
-    BigInt operator/(const BigInt& rhs) const;
-    BigInt operator/(int rhs) const;
-	BigInt operator^(int p) const;
-
-    bool operator<(const BigInt& rhs) const;
-    bool operator<=(const BigInt& rhs) const;
-    bool operator>(const BigInt& rhs) const;
-    bool operator>=(const BigInt& rhs) const;
-    bool operator==(const BigInt& rhs) const;
 
     friend ostream& operator<<(ostream& os, const BigInt& num);
-    friend istream& operator>>(istream& is, const BigInt& num);
 
-    enum Sign
-    {
-        Negative = 0,
-        Positive = 1
-    } sign;
     size_t L;
     char data[PRECISION];
 };
 
 BigInt BigInt::operator+(const BigInt& rhs) const
 {
-    if( sign == rhs.sign )
+    BigInt v;
+
+    if( rhs.L > L ) v.L = rhs.L;
+    else v.L = L;
+
+    for(size_t i=0;i<v.L;i++)
     {
-        // + + +
-        // - + -
-        BigInt v = (*this);
-
-        size_t maxL = max(v.L, rhs.L);
-
-        v.L = maxL;
-
-        for(size_t i=0;i<maxL;i++)
+        char val = data[i] + rhs(i) + v(i);
+        if( val >= 10 )
         {
-            char val = v(i) + rhs(i);
-            if( val >= 10 )
-            {
-                v(i) = val - 10;
-                v(i+1)++;
-            }
-            else
-                v(i) = val;
+            v(i) = val - 10;
+            v(i+1)++;
         }
+        else
+            v(i) = val;
+    }
 
-		if( v(v.L) != 0 ) v.L++;
+    if( v(v.L) != 0 ) v.L++;
 		
-        return v;
-    }
-    else
-    {
-        // + + - 
-        // - + +
-        return (*this) - rhs.negate();
-    }
+    return v;
 }
-
-BigInt BigInt::operator+(int rhs) const
-{
-    return (*this) + BigInt(rhs);
-}
-
-BigInt BigInt::operator-(const BigInt& rhs) const
-{
-    if( sign == rhs.sign )
-    {
-        // - - -
-        // + - +
-        BigInt v = (*this);
-
-        if( v.abs() >= rhs.abs() )
-        {
-            // do the normal subtraction
-            size_t maxL = max(v.L, rhs.L);
-            for(int i=0;i<maxL;i++)
-            {
-                char val = v(i) - rhs(i);
-                if( val < 0 )
-                {
-                    v(i) = val + 10;
-                    v(i+1)--;
-                }
-                else
-                    v(i) = val;
-            }
-
-            v.L = maxL;
-
-            // remove leading zeros
-            v.zero_justify();
-            
-            return v;
-        }
-        else
-        {
-            // do rhs - v, and negate the result
-            return (rhs - v).negate();
-        }
-    } 
-    else
-    {
-        // - - +
-        // + - -
-        return (*this) + rhs.negate();
-    }
-}
-
-BigInt BigInt::operator-(int rhs) const
-{
-    return (*this) - BigInt(rhs);
-}
-
-BigInt BigInt::operator*(const BigInt& rhs) const
-{
-    BigInt res(0);
-    for(size_t i=0;i<rhs.L;i++)
-    {
-        BigInt v;
-        char digit = rhs(i);
-        for(size_t j=0;j<L;j++)
-        {
-            char val = digit * data[j] + v(j);
-            if( val >= 10 )
-            {
-                v(j) = val % 10;
-                v(j+1) = val / 10;
-            }
-            else
-                v(j) = val;
-        }
-        v.L = L;
-        if( v(L) != 0 ) v.L++;
-
-        // add v to res
-        v = v.leftShift(i);
-        res = res + v;
-    }
-
-    res.sign = ( res.sign == sign )?BigInt::Positive:BigInt::Negative;
-	
-    res.zero_justify();
-	
-    return res;
-}
-
-BigInt BigInt::operator*(int rhs) const
-{
-    return (*this) * BigInt(rhs);
-}
-
-BigInt BigInt::operator/(const BigInt& rhs) const
-{
-    if( rhs > (*this) )
-    {
-        return BigInt(0);
-    }
-    else
-    {
-        BigInt lhs = (*this);
-
-        BigInt res(0);
-        int offset = lhs.L - rhs.L;
-
-        while( offset >= 0 )
-        {
-            res = res.leftShift(1);
-            BigInt cur = rhs.leftShift(offset);
-
-            while( lhs >= cur )
-            {
-                lhs = lhs - cur;
-                res = res + 1;
-            }
-            
-            offset--;
-        }
-
-        // remove leading zeros
-        res.sign = (sign == rhs.sign)?Positive:Negative;
-        res.zero_justify();
-
-        return res;
-    }
-}
-
-BigInt BigInt::operator/(int rhs) const
-{
-    return (*this) / BigInt(rhs);
-}
-
-BigInt BigInt::operator^(int p) const
-{
-	if( p == 0 ) return BigInt(1);
-	if( p == 1 ) return (*this);
-	if( p == 2 )
-		return (*this) * (*this);
-	else
-	{
-		return (((*this)^(p/2))^2) * ((*this)^(p&0x1));
-	}
-}
-
-void BigInt::zero_justify()
-{
-    for(int i=L-1;i>=0;i--)
-    {
-        if( data[i] != 0 ) break;
-        L--;
-    }
-
-    if( L == 0 )
-    {
-        sign = BigInt::Positive;
-        L = 1;
-    } 
-}
-
-bool BigInt::operator<(const BigInt& rhs) const
-{
-    return rhs > (*this);
-}
-
-bool BigInt::operator<=(const BigInt& rhs) const
-{
-    return (*this) < rhs || (*this) == rhs;
-}
-
-bool BigInt::operator>(const BigInt& rhs) const
-{
-    if( sign > rhs.sign ) return true;
-    else if( sign < rhs.sign ) return false;
-    else
-    {
-        if( L > rhs.L )
-        {
-            return (sign == Positive)?true:false;
-        }
-        else if( L < rhs.L )
-        {
-            return (sign == Positive)?false:true;
-        }
-        else
-        {
-            for(int i=L-1;i>=0;i--)
-            {
-                if( data[i] != rhs(i) )
-                {
-                    if( data[i] > rhs(i) )
-                    {
-                        return (sign == Positive)?true:false;
-                    }
-                    else
-                    {
-                        return (sign == Positive)?false:true;
-                    }
-                }
-            }
-
-            return false;
-        }
-    }
-}
-
-bool BigInt::operator>=(const BigInt& rhs) const
-{
-    return ((*this) > rhs) || ((*this) == rhs);
-}
-
-bool BigInt::operator==(const BigInt& rhs) const
-{
-    if( sign != rhs.sign ) return false;
-    if( L != rhs.L ) return false;
-
-    for(size_t i=0;i<L;i++)
-        if( data[i] != rhs(i) ) return false;
-    return true;
-}
-
 
 ostream& operator<<(ostream& os, const BigInt& num)
 {
-    if( num.sign == BigInt::Negative ) os << '-';
     for(int i=num.L-1;i>=0;i--)
         os << (char)(num(i) + '0');
 
     return os;
 }
 
-istream& operator>>(istream& is, BigInt& num)
-{
-    char buf[BigInt::PRECISION] = {0};
-
-    is >> buf;
-
-    num.L = strlen(buf);
-    strcpy(num.data, buf);
-
-    std::reverse(num.data, num.data+num.L);
-    for(int i=0;i<num.L;i++)
-        num.data[i] -= '0';
-}
-
-BigInt combinationNumber(unsigned int n, unsigned int r)
-{
-    BigInt u(1), d(1);
-
-    for(int i=0;i<r;i++)
-    {
-        u = u * BigInt(n - i);
-        d = d * BigInt(i + 1);
-    }
-    return u / d;
-}
-
-BigInt values[1001];
-
-BigInt findCombinations(int n)
-{
-    if( values[n] == BigInt(0) )
-        values[n] = findCombinations(n-1) + findCombinations(n-1)  + findCombinations(n-2) + findCombinations(n-3);
-
-    return values[n];
-}
-
-int main()
+void init(BigInt values[])
 {
     values[1] = BigInt(2);
     values[2] = BigInt(5);
     values[3] = BigInt(13);
 
-    findCombinations(1000);
+    BigInt v(7);            // values[1] + values[2]
+    for(int i=4;i<1001;i++)
+    {
+        const BigInt& vi = values[i-1];
+        values[i] = vi + vi + v;    // values[i-1] * 2 + values[i-2] + values[i-3]
+        v = vi + values[i-2];
+    }
+}
+
+int main()
+{
+    BigInt values[1001];
+    init(values);
 
     int n;
     while( cin >> n )
