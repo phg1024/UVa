@@ -220,27 +220,16 @@ BigInt BigInt::operator-(int rhs) const
 BigInt BigInt::operator*(const BigInt& rhs) const
 {
     BigInt res(0);
+	res.L = rhs.L + L;
     for(size_t i=0;i<rhs.L;i++)
     {
-        BigInt v;
         char digit = rhs(i);
         for(size_t j=0;j<L;j++)
         {
-            char val = digit * data[j] + v(j);
-            if( val >= 10 )
-            {
-                v(j) = val % 10;
-                v(j+1) = val / 10;
-            }
-            else
-                v(j) = val;
+			res(i+j) += digit * data[j];
+			res(i+j+1) += res(i+j) / 10;
+			res(i+j) %= 10;
         }
-        v.L = L;
-        if( v(L) != 0 ) v.L++;
-
-        // add v to res
-        v = v.leftShift(i);
-        res = res + v;
     }
 
     res.sign = ( res.sign == sign )?BigInt::Positive:BigInt::Negative;
