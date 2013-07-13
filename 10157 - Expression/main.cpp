@@ -11,7 +11,7 @@ using namespace std;
 template <typename T>
 struct BigInt
 {
-    static const size_t PRECISION = 32;
+    static const size_t PRECISION = 24;
     BigInt():
         L(1)
     {
@@ -59,36 +59,15 @@ struct BigInt
         return data[pos];
     }
 
-    BigInt leftShift(size_t n) const
-    {
-        BigInt v;
-        memcpy(v.data + n, data, sizeof(T)*L);
-        v.L = L + n;
-        return v;
-    }
-
-    BigInt rightShift(size_t n) const
-    {
-        BigInt v;
-        memcpy(v.data, data + n, sizeof(T)*(L-n));
-        v.L = L - n;
-        return v;
-    }
-
     void zero_justify();
 
     BigInt operator+(const BigInt& rhs) const;
-    BigInt operator+(int rhs) const;
+	BigInt& operator+=(const BigInt& rhs);
     BigInt operator-(const BigInt& rhs) const;
-    BigInt operator-(int rhs) const;
     BigInt operator*(const BigInt& rhs) const;
-    BigInt operator*(int rhs) const;
 
 	template <typename BT>
     friend ostream& operator<<(ostream& os, const BigInt<BT>& num);
-	
-	template <typename BT>
-    friend istream& operator>>(istream& is, const BigInt<BT>& num);
 
     size_t L;
     unsigned int data[PRECISION];
@@ -107,14 +86,13 @@ BigInt<T> BigInt<T>::operator+(const BigInt<T>& rhs) const
 
     for(size_t i=0;i<maxL;i++)
     {
-        T val = v(i) + rhs(i);
-        if( val >= base )
+		v(i) += rhs(i);
+		
+        if( v(i) >= base )
         {
-            v(i) = val - base;
+            v(i) -= base;
             v(i+1)++;
         }
-        else
-            v(i) = val;
     }
 
     if( v(v.L) != 0 ) v.L++;
@@ -123,10 +101,26 @@ BigInt<T> BigInt<T>::operator+(const BigInt<T>& rhs) const
 }
 
 template <typename T>
-BigInt<T> BigInt<T>::operator+(int rhs) const
+BigInt<T>& BigInt<T>::operator+=(const BigInt<T>& rhs)
 {
-    BigInt<T> r(rhs);
-    return (*this) + r;
+    size_t maxL = max(L, rhs.L);
+
+    L = maxL;
+
+    for(size_t i=0;i<maxL;i++)
+    {
+		data[i] += rhs(i);
+		
+        if( data[i] >= base )
+        {
+            data[i] -= base;
+            data[i+1]++;
+        }
+    }
+
+    if( data[L] != 0 ) L++;
+
+    return (*this);
 }
 
 template <typename T>
@@ -158,13 +152,6 @@ BigInt<T> BigInt<T>::operator-(const BigInt<T>& rhs) const
 }
 
 template <typename T>
-BigInt<T> BigInt<T>::operator-(int rhs) const
-{
-    BigInt<T> r(rhs);
-    return (*this) - r;
-}
-
-template <typename T>
 BigInt<T> BigInt<T>::operator*(const BigInt<T>& rhs) const
 {
     BigInt<T> res(0);
@@ -183,12 +170,6 @@ BigInt<T> BigInt<T>::operator*(const BigInt<T>& rhs) const
     res.zero_justify();
 
     return res;
-}
-
-template <typename T>
-BigInt<T> BigInt<T>::operator*(int rhs) const
-{
-    return (*this) * BigInt<T>(rhs);
 }
 
 template <typename T>
@@ -216,44 +197,13 @@ ostream& operator<<(ostream& os, const BigInt<BT>& num)
     return os;
 }
 
-template <typename BT>
-istream& operator>>(istream& is, BigInt<BT>& num)
-{
-    char buf[BigInt<BT>::PRECISION*BigInt<BT>::w] = {0};
-
-    is >> buf;
-
-    int Lbuf = strlen(buf);
-	std::reverse(buf, buf+Lbuf);
-    for(int i=0;i<Lbuf;i++)
-	{
-		num(i) = 0;
-		for(int j=0;j<BigInt<BT>::w;j++)
-		{
-			if( i*BigInt<BT>::w+j < Lbuf )
-				num(i) += (buf[i] - '0') * powf(10, j);
-			else
-			{
-				num.L = i + 1;
-				break;
-			}
-		}
-	}
-}
-
 static const int MAXN = 151;
 static const int MAXD = 151;
 BigInt<unsigned int> values[MAXN][MAXD];
 BigInt<unsigned int> result[MAXN][MAXD];
 
 void init()
-{
-	/*
-	for(unsigned int n=0;n<MAXN;n++)
-		for(unsigned int d=0;d<MAXD;d++)
-			values[n][d] = BigInt(0);
-	*/
-	
+{	
 	for(unsigned int d=0;d<MAXD;d++)
 		values[0][d] = BigInt<unsigned int>(1);
 	
@@ -262,14 +212,14 @@ void init()
 		for(unsigned int d=1;d<MAXD;d++)
 		{
 			for(unsigned int k=0;k<=n-1;k++)
-				values[n][d] = values[n][d] + values[k][d-1] * values[n-k-1][d];
+				values[n][d] += values[k][d-1] * values[n-k-1][d];
 			result[n][d] = values[n][d] - values[n][d-1];
 		}
 	}
 }
 
 int main()
-{
+{	
 	init();
     unsigned int n, d;
     while( scanf("%u %u", &n, &d) != EOF )
