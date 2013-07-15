@@ -1,10 +1,13 @@
 #include <iostream>
-#include <iomanip>
+#include <sstream>
 #include <string>
+#include <iomanip>
 #include <algorithm>
-#include <cmath>
+#include <functional>
 #include <cstdio>
+#include <cstdlib>
 #include <cstring>
+#include <cmath>
 #include <stdint.h>
 using namespace std;
 
@@ -14,7 +17,7 @@ struct BigInt
 	static const unsigned int base = 100000000;
 	static const unsigned int w = 8;
 	
-    static const size_t PRECISION = 1600;
+    static const size_t PRECISION = 2048;
     BigInt():
         L(1)
     {
@@ -331,61 +334,46 @@ ostream& operator<<(ostream& os, const BigInt& num)
     return os;
 }
 
-static const int MAXK = 22;
-static const int MAXD = 22;
-static const int MAXFACS = 4096;
-static const int MAXCASES = 4096;
-int counter = 0;
-BigInt values[MAXK][MAXD];
-BigInt facs[MAXFACS];
+static const int MAXN = 10001;
+BigInt values[MAXN];
+BigInt powers[MAXN];
+BigInt diffs[MAXN];
 
-void init( int numFacs )
+void init( )
 {	 
-	facs[0] = 1;
-	for(int i=1;i<numFacs;i++)
-		facs[i] = facs[i-1]*i;
+	powers[0] = BigInt(1);
+	for(int i=1;i<MAXN;i++)
+		powers[i] = powers[i-1]*2;
 	
-	values[0][1] = BigInt(1);
-	for(int k=1;k<MAXK;k++)
-	{
-		values[k][0] = BigInt(1);
-		values[k][1] = facs[k];
-	}
+	values[0] = BigInt(0);
+	values[1] = BigInt(1);
+	diffs[1] = values[1] - values[0];
 
-    for(int d=1;d<MAXD;d++)
-        values[1][d] = BigInt(1);
-	
-	for(int k=2;k<MAXK;k++)
+	for(int i=2;i<MAXN;i++)
 	{
-		for(int d=2;k*d<=21;d++)
+		int idx = 0;
+		for(int k=1;k<i;k++)
 		{
-			int m = (powf(k, d+1)-1) / (k - 1) - 1;
-			int km = m / k;
-						
-			values[k][d] = facs[m] / ((facs[km])^k) * ((values[k][d-1])^k);			
+			if( diffs[k] > powers[i-k-1] )
+			{
+				idx = k-1;
+				break;
+			}
 		}
+		values[i] = values[idx] * 2 + powers[i - idx] - 1;
+		diffs[i] = values[i] - values[i-1];
 	}
 }
 
-int main()
-{
-    int k[MAXCASES], d[MAXCASES];
-    while( cin >> k[counter] >> d[counter] )
-        counter++;
 
-    int numFacs = 0;
-    for(int i=0;i<counter;i++)
-    {
-        if( k[i] != 1 )
-        {
-		    int m = (powf(k[i], d[i]+1)-1) / (k[i] - 1);
-            if( m > numFacs ) numFacs = m;
-        }
-    }
-
-    init( numFacs );
-    for(int i=0;i<counter;i++)
-        cout << values[k[i]][d[i]] << endl;
-
+int main(){
+	init();
+	
+	int n;
+	while( cin >> n )
+	{
+		cout << values[n] << endl;
+	}
     return 0;
 }
+
