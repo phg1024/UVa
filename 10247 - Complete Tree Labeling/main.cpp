@@ -1,93 +1,81 @@
 #include <iostream>
+#include <iomanip>
 #include <string>
+#include <algorithm>
 #include <cmath>
+#include <cstdio>
+#include <cstring>
 using namespace std;
 
 struct BigInt
 {
-    static const size_t PRECISION = 65536;
+	typedef int digit_t;
+	static const unsigned int base = 10000;
+	static const unsigned int w = 4;
+	
+    static const size_t PRECISION = 4096;
     BigInt():
-        sign(Positive),
         L(1)
     {
-        memset(data, 0, sizeof(char)*PRECISION);
+        memset(data, 0, sizeof(digit_t)*PRECISION);
     }
 
     BigInt(int num)
     {
-        memset(data, 0, sizeof(char)*PRECISION);
-        sprintf(data, "%d", std::abs(num));
-        L = strlen(data);
-        std::reverse(data, data+L);
-        for(int i=0;i<L;i++)
-            data[i] -= '0';
+        memset(data, 0, sizeof(digit_t)*PRECISION);
 
-        if( num < 0 )
-            sign = Negative;
-        else
-            sign = Positive;
+		L = 0;
+		while( num )
+		{
+			data[L++] = num % base;
+			num /= base;
+		}
     }
 
     BigInt(const BigInt& other):
-        sign(other.sign),
         L(other.L)
     {
-        memset(data, 0, sizeof(char)*PRECISION);
-        memcpy(data, other.data, sizeof(char)*other.L);
+        memset(data, 0, sizeof(digit_t)*PRECISION);
+        memcpy(data, other.data, sizeof(digit_t)*other.L);
     }
 
     BigInt& operator=(const BigInt& other)
     {
         if( this != &other )
         {
-            memset(data, 0, sizeof(char)*PRECISION);
-            sign = other.sign;
+            memset(data, 0, sizeof(digit_t)*PRECISION);
             L = other.L;
-            memcpy(data, other.data, sizeof(char)*other.L);
+            memcpy(data, other.data, sizeof(digit_t)*other.L);
         }
         return (*this);
     }
 
-    const char& operator()(size_t pos) const
+    const digit_t& operator()(size_t pos) const
     {
         return data[pos];
     }
 
-    char& operator()(size_t pos)
+    digit_t& operator()(size_t pos)
     {
         return data[pos];
     }
 
-    BigInt negate() const
+    void leftShift(size_t n)
     {
-        BigInt v = (*this);
-        v.sign = (v.sign == Positive)?Negative:Positive;
-        return v;
+        for(int i=L-1;i>=0;i--)
+            data[i+n] = data[i];
+
+        for(int i=n-1;i>=0;i--)
+            data[i] = 0;
+
+        L += n;
     }
 
-    BigInt abs() const
+    void rightShift(size_t n)
     {
-        BigInt v = (*this);
-        v.sign = Positive;
-        return v;
-    }
-
-    BigInt leftShift(size_t n) const
-    {
-        BigInt v;
-        memcpy(v.data + n, data, sizeof(char)*L);
-        v.L = L + n;
-        v.sign = sign;
-        return v;
-    }
-
-    BigInt rightShift(size_t n) const
-    {
-        BigInt v;
-        memcpy(v.data, data + n, sizeof(char)*(L-n));
-        v.L = L - n;
-        v.sign = sign;
-        return v;
+        for(int i=0;i<L-n;i++)
+            data[i] = data[i+n];
+        L -= n;
     }
 
     void zero_justify();
@@ -111,49 +99,31 @@ struct BigInt
     friend ostream& operator<<(ostream& os, const BigInt& num);
     friend istream& operator>>(istream& is, const BigInt& num);
 
-    enum Sign
-    {
-        Negative = 0,
-        Positive = 1
-    } sign;
     size_t L;
-    char data[PRECISION];
+    digit_t data[PRECISION];
 };
 
 BigInt BigInt::operator+(const BigInt& rhs) const
 {
-    if( sign == rhs.sign )
+    BigInt v = (*this);
+
+    size_t maxL = max(v.L, rhs.L);
+
+    v.L = maxL;
+
+    for(size_t i=0;i<maxL;i++)
     {
-        // + + +
-        // - + -
-        BigInt v = (*this);
-
-        size_t maxL = max(v.L, rhs.L);
-
-        v.L = maxL;
-
-        for(size_t i=0;i<maxL;i++)
+        v(i) += rhs(i);
+        if( v(i) >= base )
         {
-            char val = v(i) + rhs(i);
-            if( val >= 10 )
-            {
-                v(i) = val - 10;
-                v(i+1)++;
-            }
-            else
-                v(i) = val;
+            v(i) -= base;
+            v(i+1)++;
         }
-
-        if( v(v.L) != 0 ) v.L++;
-
-        return v;
     }
-    else
-    {
-        // + + - 
-        // - + +
-        return (*this) - rhs.negate();
-    }
+
+    if( v(v.L) != 0 ) v.L++;
+
+    return v;
 }
 
 BigInt BigInt::operator+(int rhs) const
@@ -164,47 +134,30 @@ BigInt BigInt::operator+(int rhs) const
 
 BigInt BigInt::operator-(const BigInt& rhs) const
 {
-    if( sign == rhs.sign )
+	// assumes (*this) > rhs
+    BigInt v = (*this);
+
+    // do the normal subtraction
+    size_t maxL = max(v.L, rhs.L);
+    for(int i=0;i<maxL;i++)
     {
-        // - - -
-        // + - +
-        BigInt v = (*this);
-
-        if( v.abs() >= rhs.abs() )
-        {
-            // do the normal subtraction
-            size_t maxL = max(v.L, rhs.L);
-            for(int i=0;i<maxL;i++)
-            {
-                char val = v(i) - rhs(i);
-                if( val < 0 )
-                {
-                    v(i) = val + 10;
-                    v(i+1)--;
-                }
-                else
-                    v(i) = val;
-            }
-
-            v.L = maxL;
-
-            // remove leading zeros
-            v.zero_justify();
-            
-            return v;
-        }
-        else
-        {
-            // do rhs - v, and negate the result
-            return (rhs - v).negate();
-        }
-    } 
-    else
-    {
-        // - - +
-        // + - -
-        return (*this) + rhs.negate();
+		int val = v(i) - rhs(i);
+		
+		if( val < 0 )
+		{
+			v(i) = val + base;
+			v(i+1)--;
+		}
+		else
+			v(i) = val;
     }
+
+    v.L = maxL;
+
+    // remove leading zeros
+    v.zero_justify();
+            
+    return v;
 }
 
 BigInt BigInt::operator-(int rhs) const
@@ -219,16 +172,15 @@ BigInt BigInt::operator*(const BigInt& rhs) const
 	res.L = rhs.L + L;
     for(size_t i=0;i<rhs.L;i++)
     {
-        char digit = rhs(i);
+        digit_t digit = rhs(i);
         for(size_t j=0;j<L;j++)
         {
 			res(i+j) += digit * data[j];
-			res(i+j+1) += res(i+j) / 10;
-			res(i+j) %= 10;
+			res(i+j+1) += res(i+j) / base;
+			res(i+j) %= base;
         }
     }
 
-    res.sign = ( res.sign == sign )?BigInt::Positive:BigInt::Negative;
     res.zero_justify();
 
     return res;
@@ -263,26 +215,38 @@ BigInt BigInt::operator/(const BigInt& rhs) const
     else
     {
         BigInt lhs = (*this);
+        BigInt cur = rhs;
 
         BigInt res(0);
         int offset = lhs.L - rhs.L;
+        cur.leftShift(offset);
 
         while( offset >= 0 )
         {
-            res = res.leftShift(1);
-            BigInt cur = rhs.leftShift(offset);
-
-            while( lhs >= cur )
+			int high = base - 1;
+			int low = 0;
+			int v = (high + low + 1) / 2;
+			
+            while( high > low )
             {
-                lhs = lhs - cur;
-                res = res + 1;
+				BigInt b = cur * v;
+				if( b > lhs )
+					high = v - 1;
+				else
+					low = v;
+				
+				v = (high + low + 1)  / 2;
             }
+			
+			lhs = lhs - cur * v;
+			res(offset) = res(offset) + v;
+            res.L++;
             
             offset--;
+            cur.rightShift(1);
         }
 
         // remove leading zeros
-        res.sign = (sign == rhs.sign)?Positive:Negative;
         res.zero_justify();
 
         return res;
@@ -304,7 +268,6 @@ void BigInt::zero_justify()
 
     if( L == 0 )
     {
-        sign = BigInt::Positive;
         L = 1;
     } 
 }
@@ -321,17 +284,13 @@ bool BigInt::operator<=(const BigInt& rhs) const
 
 bool BigInt::operator>(const BigInt& rhs) const
 {
-    if( sign > rhs.sign ) return true;
-    else if( sign < rhs.sign ) return false;
-    else
-    {
         if( L > rhs.L )
         {
-            return (sign == Positive)?true:false;
+            return true;
         }
         else if( L < rhs.L )
         {
-            return (sign == Positive)?false:true;
+            return false;
         }
         else
         {
@@ -340,19 +299,14 @@ bool BigInt::operator>(const BigInt& rhs) const
                 if( data[i] != rhs(i) )
                 {
                     if( data[i] > rhs(i) )
-                    {
-                        return (sign == Positive)?true:false;
-                    }
+                        return true;
                     else
-                    {
-                        return (sign == Positive)?false:true;
-                    }
+						return false;
                 }
             }
 
             return false;
         }
-    }
 }
 
 bool BigInt::operator>=(const BigInt& rhs) const
@@ -362,7 +316,6 @@ bool BigInt::operator>=(const BigInt& rhs) const
 
 bool BigInt::operator==(const BigInt& rhs) const
 {
-    if( sign != rhs.sign ) return false;
     if( L != rhs.L ) return false;
 
     for(size_t i=0;i<L;i++)
@@ -373,65 +326,43 @@ bool BigInt::operator==(const BigInt& rhs) const
 
 ostream& operator<<(ostream& os, const BigInt& num)
 {
-    if( num.sign == BigInt::Negative ) os << '-';
-    for(int i=num.L-1;i>=0;i--)
-        os << (char)(num(i) + '0');
+	os << num(num.L-1);
+    for(int i=num.L-2;i>=0;i--)
+        os << setw(BigInt::w) << setfill('0') << num(i);
 
     return os;
 }
 
-istream& operator>>(istream& is, BigInt& num)
-{
-    char buf[BigInt::PRECISION] = {0};
-
-    is >> buf;
-
-    num.L = strlen(buf);
-    strcpy(num.data, buf);
-
-    std::reverse(num.data, num.data+num.L);
-    for(int i=0;i<num.L;i++)
-        num.data[i] -= '0';
-}
-
-BigInt combinationNumber(int n, int k)
-{
-	BigInt u(1), d(1);
-	for(int i=1;i<=k;i++)
-	{
-		u = u * (n - i + 1);
-		d = d * i;
-	}	
-	return u / d;
-}
-
 static const int MAXK = 22;
 static const int MAXD = 22;
+static const int MAXFACS = 4096;
 BigInt values[MAXK][MAXD];
+BigInt facs[MAXFACS];
 
 void init()
 {	 
+	facs[0] = 1;
+	for(int i=1;i<MAXFACS;i++)
+		facs[i] = facs[i-1]*i;
+	
 	values[0][1] = BigInt(1);
 	for(int k=1;k<MAXK;k++)
 	{
 		values[k][0] = BigInt(1);
-		values[k][1] = values[k-1][1] * k;
+		values[k][1] = facs[k];
 	}
+
+    for(int d=1;d<MAXD;d++)
+        values[1][d] = BigInt(1);
 	
 	for(int k=2;k<MAXK;k++)
 	{
 		for(int d=1;k*d<=21;d++)
 		{
-			BigInt p(1);
 			int m = (powf(k, d+1)-1) / (k - 1) - 1;
-			m /= k;
-			for(int j=2;j<=k;j++)
-			{
-				int nn = m*j;
-				int kk = m;
-				p = p * combinationNumber(nn, kk);
-			}
-			values[k][d] = p * (values[k][d-1]^k);
+			int km = m / k;
+						
+			values[k][d] = facs[m] / ((facs[km])^k) * ((values[k][d-1])^k);			
 		}
 	}
 }
