@@ -17,7 +17,7 @@ struct BigInt
 	static const unsigned int base = 100000000;
 	static const unsigned int w = 8;
 	
-    static const size_t PRECISION = 2048;
+    static const size_t PRECISION = 400;
     BigInt():
         L(1)
     {
@@ -91,8 +91,6 @@ struct BigInt
     BigInt operator*(const BigInt& rhs) const;
     BigInt operator*(int rhs) const;
 	BigInt operator^(int n) const;
-    BigInt operator/(const BigInt& rhs) const;
-    BigInt operator/(int rhs) const;
 
     bool operator<(const BigInt& rhs) const;
     bool operator<=(const BigInt& rhs) const;
@@ -207,58 +205,6 @@ BigInt BigInt::operator^(int n) const
 	return v * v * vm;	
 }
 
-BigInt BigInt::operator/(const BigInt& rhs) const
-{
-    if( rhs > (*this) )
-    {
-        return BigInt(0);
-    }
-    else
-    {
-        BigInt lhs = (*this);
-        BigInt cur = rhs;
-
-        BigInt res(0);
-        int offset = lhs.L - rhs.L;
-        cur.leftShift(offset);
-
-        while( offset >= 0 )
-        {
-			digit_t high = base - 1;
-			digit_t low = 0;
-			digit_t v = (high + low + 1) / 2;
-			
-            while( high > low )
-            {
-				BigInt b = cur * v;
-				if( b > lhs )
-					high = v - 1;
-				else
-					low = v;
-				
-				v = (high + low + 1)  / 2;
-            }
-			
-			lhs = lhs - cur * v;
-			res(offset) = v;
-            res.L++;
-            
-            offset--;
-            cur.rightShift(1);
-        }
-
-        // remove leading zeros
-        res.zero_justify();
-
-        return res;
-    }
-}
-
-BigInt BigInt::operator/(int rhs) const
-{
-    return (*this) / BigInt(rhs);
-}
-
 void BigInt::zero_justify()
 {
     for(int i=L-1;i>=0;i--)
@@ -349,10 +295,12 @@ void init( )
 	values[1] = BigInt(1);
 	diffs[1] = values[1] - values[0];
 
+    int idx = 0;/// reduce search space
+
 	for(int i=2;i<MAXN;i++)
 	{
-		int idx = 0;
-		for(int k=1;k<i;k++)
+        /// search start from idx
+		for(int k=idx;k<i;k++)
 		{
 			if( diffs[k] > powers[i-k-1] )
 			{
@@ -364,7 +312,6 @@ void init( )
 		diffs[i] = values[i] - values[i-1];
 	}
 }
-
 
 int main(){
 	init();
