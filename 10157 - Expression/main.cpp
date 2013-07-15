@@ -2,6 +2,7 @@
 #include <iomanip>
 #include <algorithm>
 #include <string>
+#include <stdint.h>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
@@ -11,7 +12,7 @@ using namespace std;
 template <typename T>
 struct BigInt
 {
-    static const size_t PRECISION = 24;
+    static const size_t PRECISION = 12;
     BigInt():
         L(1)
     {
@@ -70,9 +71,9 @@ struct BigInt
     friend ostream& operator<<(ostream& os, const BigInt<BT>& num);
 
     size_t L;
-    unsigned int data[PRECISION];
-	static const int base = 10000;
-	static const int w = 4;
+    T data[PRECISION];
+	static const int base = 100000000;
+	static const int w = 8;
 };
 
 template <typename T>
@@ -199,13 +200,13 @@ ostream& operator<<(ostream& os, const BigInt<BT>& num)
 
 static const int MAXN = 151;
 static const int MAXD = 151;
-BigInt<unsigned int> values[MAXN][MAXD];
-BigInt<unsigned int> result[MAXN][MAXD];
+BigInt<int64_t> values[MAXN][MAXD];
+BigInt<int64_t> result[MAXN][MAXD];
 
 void init()
 {	
 	for(unsigned int d=0;d<MAXD;d++)
-		values[0][d] = BigInt<unsigned int>(1);
+		values[0][d] = BigInt<int64_t>(1);
 	
 	for(unsigned int n=1;n<MAXN;n++)
 	{
