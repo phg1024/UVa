@@ -5,15 +5,16 @@
 #include <cmath>
 #include <cstdio>
 #include <cstring>
+#include <stdint.h>
 using namespace std;
 
 struct BigInt
 {
-	typedef int digit_t;
-	static const unsigned int base = 10000;
-	static const unsigned int w = 4;
+	typedef int64_t digit_t;
+	static const unsigned int base = 100000000;
+	static const unsigned int w = 8;
 	
-    static const size_t PRECISION = 4096;
+    static const size_t PRECISION = 1600;
     BigInt():
         L(1)
     {
@@ -141,15 +142,12 @@ BigInt BigInt::operator-(const BigInt& rhs) const
     size_t maxL = max(v.L, rhs.L);
     for(int i=0;i<maxL;i++)
     {
-		int val = v(i) - rhs(i);
-		
-		if( val < 0 )
-		{
-			v(i) = val + base;
-			v(i+1)--;
-		}
-		else
-			v(i) = val;
+        v(i) -= rhs(i);
+        if( v(i) < 0 )
+        {
+            v(i) += base;
+            v(i+1)--;
+        }
     }
 
     v.L = maxL;
@@ -223,9 +221,9 @@ BigInt BigInt::operator/(const BigInt& rhs) const
 
         while( offset >= 0 )
         {
-			int high = base - 1;
-			int low = 0;
-			int v = (high + low + 1) / 2;
+			digit_t high = base - 1;
+			digit_t low = 0;
+			digit_t v = (high + low + 1) / 2;
 			
             while( high > low )
             {
@@ -336,13 +334,15 @@ ostream& operator<<(ostream& os, const BigInt& num)
 static const int MAXK = 22;
 static const int MAXD = 22;
 static const int MAXFACS = 4096;
+static const int MAXCASES = 4096;
+int counter = 0;
 BigInt values[MAXK][MAXD];
 BigInt facs[MAXFACS];
 
-void init()
+void init( int numFacs )
 {	 
 	facs[0] = 1;
-	for(int i=1;i<MAXFACS;i++)
+	for(int i=1;i<numFacs;i++)
 		facs[i] = facs[i-1]*i;
 	
 	values[0][1] = BigInt(1);
@@ -357,7 +357,7 @@ void init()
 	
 	for(int k=2;k<MAXK;k++)
 	{
-		for(int d=1;k*d<=21;d++)
+		for(int d=2;k*d<=21;d++)
 		{
 			int m = (powf(k, d+1)-1) / (k - 1) - 1;
 			int km = m / k;
@@ -369,11 +369,23 @@ void init()
 
 int main()
 {
-    int k, d;
-    init();
-    while( cin >> k >> d )
+    int k[MAXCASES], d[MAXCASES];
+    while( cin >> k[counter] >> d[counter] )
+        counter++;
+
+    int numFacs = 0;
+    for(int i=0;i<counter;i++)
     {
-        cout << values[k][d] << endl;
+        if( k[i] != 1 )
+        {
+		    int m = (powf(k[i], d[i]+1)-1) / (k[i] - 1);
+            if( m > numFacs ) numFacs = m;
+        }
     }
+
+    init( numFacs );
+    for(int i=0;i<counter;i++)
+        cout << values[k[i]][d[i]] << endl;
+
     return 0;
 }
