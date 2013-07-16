@@ -10,6 +10,13 @@
 #include <cmath>
 using namespace std;
 
+// the steps must be the following pattern
+//
+// 1, 2, ..., k-1, k, ..., k, k-1, ..., x+1, x, x, x-1, ..., 2, 1 
+// 
+// there are at least one k in the sequence, and the x can be 1 to k-1
+// compute the sum of the sequence leads to the answer
+
 int main(){
 	int ncases;
 	scanf("%d", &ncases);
