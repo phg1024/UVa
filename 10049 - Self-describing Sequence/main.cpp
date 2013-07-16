@@ -11,10 +11,14 @@
 #include <cassert>
 using namespace std;
 
+// long enough sequence of n to generate a 2000000000 length sequence
 const static unsigned int L = 673368;
 const static int MAXN = 4807;
 
 int fn[L] = {0};
+
+// sn(k) = sum_{i=1}{k} fn(i)
+// sn(k) is the length of the sequence ending with k
 unsigned int sn[L] = {0};
 	
 void init()
@@ -38,6 +42,7 @@ void init()
 	}
 }
 
+// binary search to find the containing interval
 int findFn(unsigned int n)
 {
 	int high = L - 1, low = 1;
@@ -63,9 +68,9 @@ int main(){
 	unsigned int n;
 	while( true )
 	{
-        scanf("%u", &n);
-        if( n == 0 ) break;
-		printf("%d\n", findFn( n ));
+		scanf("%u", &n);
+		if( n == 0 ) break;
+		printf("%d\n", findFn(n));
 	}
 
     return 0;
