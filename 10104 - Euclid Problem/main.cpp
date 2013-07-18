@@ -10,41 +10,40 @@
 #include <cmath>
 using namespace std;
 
-int extended_gcd(int a, int b, int& x, int &y)
+int extended_gcd(int a, int b, int& x, int &y, int &d)
 {
-    if( b == 0 )
-    {
-        x = 1, y = 0;
-        return a;
-    }
-    else
-    {
-        int d = extended_gcd(b, a%b, x, y);
-
-        int nx = y;
-        int ny = x - (a/b) * y;
-
-        x = nx;
-        y = ny;
-        return d;
-    }
+	x = 0, y = 1;
+	int lastx = 1, lasty = 0;
+	int q, r;
+	
+	while( b != 0 )
+	{
+		q = a / b;
+		r = a % b;
+		a = b;
+		b = r;
+		
+		int nx = lastx - q * x;
+		lastx = x;
+		x = nx;
+		
+		int ny = lasty - q * y;
+		lasty = y;
+		y = ny;
+	}
+	
+	x = lastx;
+	y = lasty;
+	d = a;
 }
 
 int main(){
     int a, b;
     while( scanf("%d %d", &a, &b) != EOF )
     {
-        int x, y;
-        if( a <= b )
-        {
-            int d = extended_gcd(a, b, x, y);
-            printf("%d %d %d\n", x, y, d);
-        }
-        else
-        {
-            int d = extended_gcd(b, a, y, x);
-            printf("%d %d %d\n", x, y, d);
-        }
+        int x, y, d;
+		extended_gcd(a, b, x, y, d);
+        printf("%d %d %d\n", x, y, d);
     }
     return 0;
 }
