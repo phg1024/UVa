@@ -3,7 +3,9 @@
 #include <algorithm>
 #include <functional>
 #include <vector>
+#include <deque>
 #include <bitset>
+#include <map>
 
 #include <cstring>
 #include <cstdio>
@@ -11,13 +13,21 @@
 #include <cmath>
 using namespace std;
 
-static const int SIZE = 4096;
-
-bitset<SIZE> flag(0);
-
 int main()
 {
-    printf("The 1500'th ugly number is 959963392.\n");
-
+    int a,b,c,n;
+    long ugly[1502],x,y,z;
+    ugly[1]=a=b=c=n=1;
+    while(n!=1500)
+    {
+        x=2*ugly[a];
+        y=3*ugly[b];
+        z=5*ugly[c];
+        ugly[++n]=min(x,min(y,z));
+        if(ugly[n]==x)a++;
+        if(ugly[n]==y)b++;
+        if(ugly[n]==z) c++;
+    }
+    printf("The 1500'th ugly number is %ld.\n",ugly[1500]);
     return 0;
 }
