@@ -47,17 +47,19 @@ bool isCarmichael(int n)
     if( isPrime[n] == 0 )
         return false;
 
-	int m2 = modulo(2, n, n);
+	int m2 = modulo(1, n, n);
 	
     for(int i=2, j=4;i<n/2;i++, j=i*2)
     {
 		int mi = modulo(i, n, n);
-		int mj = (mi * m2)% n;
+		// (i + j)^n mod n = (i^n + j^n) mod n
+		int mj = (mi + mi) % n;
         if( (mi != i) || (mj != j) )
         {
             return false;
         }
     }
+	
 	if( !(n & 0x1) ) if( modulo(n-1, n, n) != n-1 ) return false;
 
     return true;
