@@ -19,9 +19,15 @@ unsigned int modulo(unsigned int n, unsigned int m)
 	if( n == 1 ) return 1;
 	else
 	{
-		unsigned int v = n % m;
-		unsigned int r = modulo(n-1, m);
-		return (v * r) % m;
+		unsigned int r = 2 % m;
+		unsigned int j = 3;
+		while( j <= n )
+		{
+			unsigned int v = j % m;
+			r = (v * r) % m;
+			j++;
+		}
+		return r;
 	}
 }
 
