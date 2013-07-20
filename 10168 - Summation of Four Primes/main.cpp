@@ -11,10 +11,11 @@
 #include <cmath>
 using namespace std;
 
-unsigned int primes[180];
+unsigned int primes[173];
 int primeCount;
 // only a small set of primes, may not work for very large range
 static const unsigned int MAXPRIMES = 1024;
+static const unsigned int MAXR = 33;
 bitset<MAXPRIMES> flag(0);
 
 bool isPrime(unsigned int n)
@@ -23,14 +24,15 @@ bool isPrime(unsigned int n)
 	else
 	{
 		for(int i=0;i<primeCount;i++)
+		{
 			if( n % primes[i] == 0 ) return false;
+		}
 		return true;
 	}
 }
 
 void init()
 {
-	unsigned int MAXR = (sqrt(MAXPRIMES) + 0.5);
 	flag[0] = 1, flag[1] = 1;
 	for(unsigned int i=2;i<MAXR;)
 	{
@@ -45,46 +47,11 @@ void init()
 	for(unsigned int i=2;i<MAXPRIMES;)
 	{
 		if( flag[i] == 0 )
-		{
 			primes[primeCount++] = i;
-		}
 		
 		i++;
 		while( flag[i] == 1 && i < MAXPRIMES ) i++;
 	}
-}
-
-void findPrimes(unsigned int n)
-{
-        for(int i=0;i<primeCount;i++)
-        {
-			unsigned int pi = primes[i];
-            for(int j=0;j<primeCount;j++)
-            {
-				unsigned int sumj = primes[j] + pi;
-			    for(int k=0;k<primeCount;k++)
-                {
-					unsigned int sumk = sumj + primes[k];
-					if( sumk > n )
-					{
-						break;
-					}
-					else
-					{
-                    	unsigned int pl = n - sumk;
-
-						if( isPrime(pl) )
-						{
-							printf("%d %d %d %d\n", primes[i], primes[j], primes[k], pl);
-							return;
-						}
-					}
-                }
-            }
-        }
-		
-		// not found
-		printf("Impossible.\n");
 }
 
 int main()
@@ -93,7 +60,23 @@ int main()
     unsigned int n;
     while( scanf("%u", &n) != EOF )
     {
-        findPrimes(n);
+		// use Goldbach's conjecture
+		if( n <= 7 )
+			printf("Impossible.\n");
+		else
+		{
+			int r = n & 0x1;
+			unsigned int np = n - 4 - r;
+		    for(int i=0;i<primeCount;i++)
+		    {
+				unsigned int pj = np - primes[i];
+				if( isPrime(pj) )
+				{
+					printf("2 %d %d %d\n", 2+r, primes[i], pj);
+					break;
+				}
+			}
+		}
     }
     return 0;
 }
