@@ -11,16 +11,17 @@
 #include <cmath>
 using namespace std;
 
-// primes in [1, 65536]
-int primes[6543];
+// primes in [1, 32768]
+int primes[3600];
 int primeCount;
-bitset<65536> flag(0);
+static const unsigned int MAXPRIMES = 32768;
+bitset<MAXPRIMES> flag(0);
 
 typedef pair<unsigned int, unsigned int> factor_t;
 
 bool isPrime(unsigned int n)
 {
-	if( n < 65536 )
+	if( n < MAXPRIMES )
 		return 1 - flag[n];
 	else
 	{
@@ -32,23 +33,24 @@ bool isPrime(unsigned int n)
 
 void init()
 {
-	for(int i=2;i<257;)
+	unsigned int MAXR = sqrt(MAXPRIMES) + 0.5;
+	for(int i=2;i<MAXR;)
 	{
-		for(int j=i+i;j<65536;j+=i)
+		for(int j=i+i;j<MAXPRIMES;j+=i)
 			flag[j] = 1;
 		
 		i++;
-		while( flag[i] == 1 && i < 257 ) i++;
+		while( flag[i] == 1 && i < MAXR ) i++;
 	}
 	
 	primeCount = 0;	
-	for(int i=2;i<65536;)
+	for(int i=2;i<MAXPRIMES;)
 	{
 		if( flag[i] == 0 )
 			primes[primeCount++] = i;
 		
 		i++;
-		while( flag[i] == 1 && i < 65536 ) i++;
+		while( flag[i] == 1 && i < MAXPRIMES ) i++;
 	}
 }
 
