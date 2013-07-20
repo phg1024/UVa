@@ -13,10 +13,11 @@
 #include <cmath>
 using namespace std;
 
+// primes in [1, 65536]
 int primes[6543];
 int primeCount;
 
-typedef map<unsigned int, unsigned int> factor_t;
+typedef pair<unsigned int, unsigned int> factor_t;
 
 void init()
 {
@@ -41,9 +42,9 @@ void init()
 	}
 }
 
-factor_t factorize(unsigned int n)
+void factorize(unsigned int n, factor_t facs[], int& nfacs)
 {
-	factor_t facs;
+	nfacs = 0;
 	for(int i=0;i<primeCount;i++)
 	{
 		int p = primes[i];
@@ -57,23 +58,13 @@ factor_t factorize(unsigned int n)
 				count++;
 				n /= p;
 			}
-			facs[p] = count;
+			facs[nfacs++] = make_pair(p, count);
 		}		
 	}
 	
 	if( n != 1 )
-		facs[n] = 1;
-	return facs;
-}
-
-void printFacs(unsigned int n, factor_t& facs)
-{
-	cout << "n = " << n << endl;
-	for(factor_t::iterator it=facs.begin();
-		it!=facs.end();
-		it++)
 	{
-		cout << (*it).first << " : " << (*it).second << endl;
+		facs[nfacs++] = make_pair(n, 1);
 	}
 }
 
@@ -83,18 +74,17 @@ bool solve(unsigned int n, unsigned int m)
 	if( m == 1 ) return true;
 	if( n >= m ) return true;
 
-	factor_t facs = factorize( m );
-	//printFacs(m, facs);
+    // there are no more than 64 factors for any unsigned int
+	factor_t facs[64];
+	int nfacs;
 	
-	for(factor_t::iterator it=facs.begin();
-		it!=facs.end();
-		it++)
+	factorize( m, facs, nfacs );
+	
+	for(int i=0;i<nfacs;i++)
 	{
-		int p = (*it).first;
-		int k = (*it).second;
-		
-		//cout << p << " ^ " << k << endl;
-		
+		int p = facs[i].first;
+		int k = facs[i].second;
+				
 		/// see if there is enough factor in n!
 		unsigned int v = p;
 		while( k > 0 )
@@ -102,7 +92,6 @@ bool solve(unsigned int n, unsigned int m)
 			if( v > n ) break;
 			
 			unsigned int v0 = v;
-			//cout << "v0 = " << v0 << endl;
 			while( v0 % p == 0 )
 			{
 				v0 /= p;
@@ -110,7 +99,6 @@ bool solve(unsigned int n, unsigned int m)
 			}
 			v += p;
 		}
-		//cout  <<  k  << endl;
 			
 		if( k > 0 ) return false;
 	}
