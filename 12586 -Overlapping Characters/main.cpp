@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <functional>
 #include <vector>
+#include <bitset>
 
 #include <cstring>
 #include <cstdio>
@@ -10,76 +11,23 @@
 #include <cmath>
 using namespace std;
 
-static const int w = 64;
+static const int w = 44;
 static const int h = 16;
 static const int MAXN = 36;
-
-struct Line
-{
-	Line(){}
-	Line(char buf[])
-	{
-		memcpy(data, buf, sizeof(char)*w);
-	}
-	
-	Line(const Line& l)
-	{
-		memcpy(data, l.data, sizeof(char)*w);
-	}
-	
-	Line& operator=(const Line& l)
-	{
-		if( this != &l )
-		{
-			memcpy(data, l.data, sizeof(char)*w);
-		}
-		return (*this);
-	}
-	
-	// remove overlap region
-	Line operator-(const Line& l)
-	{
-		Line res = (*this);
-		for(int i=0;i<w;i++)
-		{
-			res.data[i] = (l.data[i] == '*')?'.':res.data[i];
-		}
-		return res;
-	}
-		
-	friend ostream& operator<<(ostream& os, const Line& l);
-	
-	bool empty()
-	{
-		for(int i=0;i<w;i++)
-			if( data[i] == '*' ) return false;
-		return true;
-	}
-
-	char data[w];
-};
-
-ostream& operator<<(ostream& os, const Line& l)
-{
-	os << l.data;
-	return os; 
-}
 
 struct Grid
 {
 	Grid(){}
 	Grid(const Grid& g)
 	{
-		for(int i=0;i<h;i++)
-			lines[i] = g.lines[i];
+		memcpy(lines, g.lines, sizeof(int64_t)*h);
 	}
 	
 	Grid& operator=(const Grid& g)
 	{
 		if( this != &g )
 		{
-			for(int i=0;i<h;i++)
-				lines[i] = g.lines[i];
+			memcpy(lines, g.lines, sizeof(int64_t)*h);
 		}
 		return (*this);
 	}
@@ -88,30 +36,38 @@ struct Grid
 	{
 		for(int i=0;i<h;i++)
 		{
-			if( !lines[i].empty() ) return false;
+			if( lines[i]  ) return false;
 		}
 		return true;
 	}
-	
-	Grid operator-(const Grid& g)
-	{
-		Grid res = (*this);
-		for(int i=0;i<h;i++)
-			res.lines[i] = lines[i] - g.lines[i];
 		
-		return res;
-	}
-	
-	friend ostream& operator<<(ostream& os, const Grid& g);
-	
-	Line lines[h];
+	int64_t lines[h];
 };
 
-ostream& operator<<(ostream& os, const Grid& g)
+int64_t buf2line(char buf[])
+{
+	int64_t v = 0x0;
+	int64_t one = 0x1;
+	for(int i=0;i<w;i++)
+	{
+		if( buf[i] == '*' )
+			v |= (one << i);
+	}
+	return v;
+}
+
+void removeOverlap(Grid& g1, const Grid& g2)
 {
 	for(int i=0;i<h;i++)
-		cout << g.lines[i] << endl;;
-	return os;
+	{
+		g1.lines[i] &= (~g2.lines[i]);
+	}
+}
+
+void initgrid(Grid& g1, const Grid& g2)
+{
+	for(int i=0;i<h;i++)
+		memcpy(g1.lines, g2.lines, sizeof(int64_t)*h);
 }
 
 int main()
@@ -133,11 +89,11 @@ int main()
         for(int j=0;j<h;j++)
         {
             gets(buf);
-            grid[i].lines[j] = Line(buf);
+            grid[i].lines[j] = buf2line(buf);
         }
 		gets(buf);
     }
-	
+		
     Grid testgrid[MAXN];
     for(int i=1;i<=Q;i++)
     {
@@ -145,7 +101,7 @@ int main()
 		gets(buf);
 		int m = strlen(buf);
 		for(int j=0;j<m;j++)
-			testgrid[j] = grid[cmap[buf[j]]];
+			initgrid(testgrid[j], grid[cmap[buf[j]]]);
 		
 		for(int j=0;j<m;j++)
 		{			
@@ -153,9 +109,8 @@ int main()
 			{
 				if( j == k ) continue;
 				
-				testgrid[j] = testgrid[j] - grid[cmap[buf[k]]];
+				removeOverlap(testgrid[j], grid[cmap[buf[k]]]);
 			}
-			//cout << testgrid[j];
 		}
 		
 		printf("Query %d: ", i);

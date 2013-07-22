@@ -3,7 +3,6 @@
 #include <algorithm>
 #include <functional>
 #include <vector>
-#include <set>
 
 #include <cstring>
 #include <cstdio>
@@ -18,7 +17,7 @@ struct Box
 {
     Box():ndim(0){}
     Box(int n):ndim(n){}
-    Box(const Box& b):idx(b.idx), ndim(b.ndim)
+    Box(const Box& b):ndim(b.ndim)
     {
         memcpy(dim, b.dim, sizeof(int)*b.ndim);
     }
@@ -41,32 +40,21 @@ struct Box
         return true;
     }
 
-    int idx;
     int ndim;
     int dim[MAXDIM];
 };
 
-void printMap(char m[][MAXBOXES], int n)
-{
-	for(int i=0;i<n;i++)
-	{
-		for(int j=0;j<n;j++)
-		{
-			cout << (int)(m[i][j]) << ' ';
-		}
-		cout << endl;
-	}
-}
-
 void topsort(char m[][MAXBOXES], int n, int order[])
 {
-	set<int> nodes;
     int idx = 0;
     // 0 in-degree nodes
     while( idx < n )
     {
         for(int i=0;i<n;i++)
         {
+			if( m[i][i] == -1 )
+				continue;
+			
             bool flag = true;
             for(int j=0;j<n;j++)
                 if( m[i][j] != 0 )
@@ -74,14 +62,16 @@ void topsort(char m[][MAXBOXES], int n, int order[])
                     flag = false;
                 }
 
-            if( flag && nodes.find(i) == nodes.end() )
+            if( flag )
             {
-				nodes.insert(i);
                 order[idx++] = i;
 				
 	            // cancel out going link
 	            for(int k=0;k<n;k++)
 	                m[k][i] = 0;
+				
+				// mark this node to be removed
+				m[i][i] = -1;
 				break;
             }
         }
@@ -93,11 +83,11 @@ void printPath(int idx, int prev[])
 	if( prev[idx] != -1 )
 	{
 		printPath(prev[idx], prev);
-		cout << ' ' << idx + 1;
+		printf(" %d", idx+1);
 	}
 	else
 	{
-		cout << idx + 1;
+		printf("%d", idx+1);
 	}
 }
 
@@ -109,7 +99,6 @@ int main()
         Box b[MAXBOXES];
         for(int i=0;i<k;i++)
         {
-            b[i].idx = i+1;
             b[i].ndim = d;
             for(int j=0;j<d;j++)
             {
@@ -189,10 +178,11 @@ int main()
 				maxIdx = i;
 			}
 		}
-		cout << maxLength + 1 << endl;
+		printf("%d\n", maxLength+1);
+
 		// print the path
 		printPath(maxIdx, prev);
-		cout << endl;
+		putchar('\n');
     }
 
     return 0;
