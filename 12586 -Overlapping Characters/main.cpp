@@ -18,40 +18,39 @@ static const int MAXN = 36;
 struct Grid
 {
 	Grid(){}
-	Grid(const Grid& g)
-	{
-		memcpy(lines, g.lines, sizeof(int64_t)*h);
-	}
-	
-	Grid& operator=(const Grid& g)
-	{
-		if( this != &g )
-		{
-			memcpy(lines, g.lines, sizeof(int64_t)*h);
-		}
-		return (*this);
-	}
-	
+
 	bool empty()
 	{
 		for(int i=0;i<h;i++)
-		{
-			if( lines[i]  ) return false;
-		}
+			if( lines[i] != 0 ) return false;
 		return true;
 	}
-		
+	
 	int64_t lines[h];
+};
+
+int64_t mask[] = 
+{
+	0x1, 0x2, 0x4, 0x8,
+	0x10, 0x20, 0x40, 0x80,
+	0x100, 0x200, 0x400, 0x800,
+	0x1000, 0x2000, 0x4000, 0x8000,
+	0x10000, 0x20000, 0x40000, 0x80000,
+	0x100000, 0x200000, 0x400000, 0x800000,
+	0x1000000, 0x2000000, 0x4000000, 0x8000000,
+	0x10000000, 0x20000000, 0x40000000, 0x80000000,	
+	0x100000000, 0x200000000, 0x400000000, 0x800000000,	
+	0x1000000000, 0x2000000000, 0x4000000000, 0x8000000000,	
+	0x10000000000, 0x20000000000, 0x40000000000, 0x80000000000,	
 };
 
 int64_t buf2line(char buf[])
 {
 	int64_t v = 0x0;
-	int64_t one = 0x1;
 	for(int i=0;i<w;i++)
 	{
 		if( buf[i] == '*' )
-			v |= (one << i);
+			v |= mask[i];
 	}
 	return v;
 }
@@ -66,8 +65,7 @@ void removeOverlap(Grid& g1, const Grid& g2)
 
 void initgrid(Grid& g1, const Grid& g2)
 {
-	for(int i=0;i<h;i++)
-		memcpy(g1.lines, g2.lines, sizeof(int64_t)*h);
+	memcpy(g1.lines, g2.lines, sizeof(int64_t)*h);
 }
 
 int main()
@@ -108,7 +106,6 @@ int main()
 			for(int k=0;k<m;k++)
 			{
 				if( j == k ) continue;
-				
 				removeOverlap(testgrid[j], grid[cmap[buf[k]]]);
 			}
 		}
