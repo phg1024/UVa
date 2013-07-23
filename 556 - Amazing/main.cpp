@@ -10,8 +10,8 @@
 #include <cmath>
 using namespace std;
 
-static const int MAXW = 1024;
-static const int MAXH = 1024;
+static const int MAXW = 16; 
+static const int MAXH = 16;
 
 int move[4][2] = 
 {
@@ -27,19 +27,10 @@ int h, w;
 
 struct Robot
 {
-    Robot(int px, int py):rightWall(1), x(px), y(py), dir(0){}
+    Robot(int px, int py):x(px), y(py), dir(0){}
 
     void advance()
     {
-        if( rightWall == 0 )
-        {
-            // turn right
-            dir += 3;
-            dir %= 4;
-
-            rightWall = 1;
-        }
-
         // turn left until advance is possible
         while( true )
         {
@@ -54,7 +45,12 @@ struct Robot
 
                 int rightDir = (dir + 3) % 4;
                 if( maze[ny + move[rightDir][1]][nx + move[rightDir][0]] == '0' )
-                	rightWall = 0;
+                {
+                    // turn right
+                    dir += 3;
+                    if( dir >= 4 ) dir-=4;
+                }
+
 				
                 break;
             }
@@ -62,12 +58,11 @@ struct Robot
             {
                 // turn left
                 dir ++;
-                dir %= 4;
+                if( dir >= 4 ) dir-=4;
             }
         }
     }
 
-    int rightWall;
     int x, y;
     int dir;
 };
