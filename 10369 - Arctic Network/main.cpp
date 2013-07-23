@@ -32,71 +32,64 @@ int main()
         scanf("%d %d", &S, &P);
 
         int pos[MAXP][2];
-        float dist[MAXP][MAXP]; 
 
         for(int i=0;i<P;i++)
         {
             scanf("%d %d", &(pos[i][0]), &(pos[i][1]));
         }
 
+        float dist[MAXP][MAXP]; 
         for(int i=0;i<P;i++)
             for(int j=i+1;j<P;j++)
             {
-                float d = distance(pos[i], pos[j]);
-                dist[i][j] = dist[j][i] = d;
+                dist[i][j] = dist[j][i] = distance(pos[i], pos[j]);
             }
 
 
         // minimum spanning tree
 
         // start with the first node
-        int VL[MAXP], VR[MAXP];
-        int sizeL = 1, sizeR = P - 1;
-        float W[MAXP];
-        int sizeW = 0;
+        float cost[MAXP], W[MAXP]; 
+        int cov[MAXP], adj[MAXP];
 
-        VL[0] = 0;
-
+        cost[0] = 0; adj[0] = 0; cov[0] = 1;
         for(int i=1;i<P;i++)
-            VR[i-1] = i;
-
-        while( sizeR > 0 )
         {
-            float w = numeric_limits<float>::max();
-            int idxR;
-            pair<int, int> e;
-            for(int i=0;i<sizeR;i++)
-            {
-                int nr = VR[i];
-                for(int j=0;j<sizeL;j++)
-                {
-                    int nl = VL[j];
+            cost[i] = dist[0][i];
+            adj[i] = 1;
+            cov[i] = 0;
+        }
 
-                    if( dist[nl][nr] < w )
-                    {
-                        e.first = nl;
-                        e.second = nr;
-                        w = dist[nl][nr];
-                        idxR = i;
-                    }
+        for(int i=0;i<P;i++)
+        {
+            float minW = numeric_limits<float>::max();
+            int k;
+            for(int j=1;j<P;j++)
+            {
+                if( !cov[j] && cost[j]<minW )
+                {
+                    minW = cost[j];
+                    k = j;
                 }
             }
 
-            VL[sizeL++] = e.second;
-            VR[idxR] = VR[sizeR-1];
-            sizeR--;
-            W[sizeW++] = w;
+            W[i] = minW;
+            cov[k] = 1;
+
+            // update closest neighbors
+            for(int j=1;j<P;j++)
+            {
+                if( !cov[j] && cost[j] > dist[k][j] )
+                {
+                    cost[j] = dist[k][j];
+                    adj[j] = k;
+                }
+            }
         }
 
-        std::sort(W, W+sizeW, std::greater<float>());
+        std::sort(W, W+P-1, std::greater<float>());
 
-        /*
-        for(int i=0;i<sizeW;i++)
-            cout << W[i] << endl;
-            */
-        
-
-        cout << std::fixed << setprecision(2) << sqrt(W[S-1]) << endl;
+        printf("%.2f\n", sqrt(W[S-1]));
     }
     return 0;
 }
