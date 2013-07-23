@@ -23,9 +23,10 @@ int main()
         scanf("%d %d %s", &n, &k, p);
 
         int count = 0;
-        for(int i=0;i<n;i++)
+        for(int i=0, mp=k+1;i<n;i++,mp++)
         {
-            for(int j=i-1;j>=max(i-k, 0);j--)
+            int m = (mp>n?n:mp);
+            for(int j=i+1;j<m;j++)
             {
                 if( p[i] == p[j] ){
                     count++;
