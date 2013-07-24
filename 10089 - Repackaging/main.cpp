@@ -93,7 +93,8 @@ void convexhull(point_t points[], int& n)
 	n = count-1;
 }
 
-bool isInside(const point_t& p, point_t poly[], int n)
+// test if (0, 0) is inside the polygon
+bool isInside(point_t poly[], int n)
 {	
 	// ray shooting
 	int hit = 0;
@@ -101,14 +102,11 @@ bool isInside(const point_t& p, point_t poly[], int n)
 	{
 		point_t& p1 = poly[i];
 		point_t& p2 = poly[i+1];
-		lint dy1, dy2;
-		dy1 = p1.y - p.y;
-		dy2 = p2.y - p.y;
-		if( (dy1 >= 0 && dy2 < 0)
-		 || (dy1 < 0 && dy2 >= 0) )
+		if( (p1.y >= 0 && p2.y < 0)
+		 || (p1.y < 0 && p2.y >= 0) )
 		{
-			double hitx = dy1 / (double)(p1.y-p2.y) * (p2.x - p1.x) + p1.x;
-			if( hitx >= p.x ) hit++;
+			double hitx = p1.y / (double)(p1.y-p2.y) * (p2.x - p1.x) + p1.x;
+			if( hitx >= 0 ) hit++;
 		}
 	}
 	return (hit&0x1);
@@ -132,7 +130,7 @@ int main()
 		}
 		convexhull( points, n );
 		
-		printf("%s\n", (isInside(point_t(0, 0), points, n)?"Yes":"No"));
+		printf("%s\n", (isInside(points, n)?"Yes":"No"));
 	}
     return 0;
 }
