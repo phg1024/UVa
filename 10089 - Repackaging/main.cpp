@@ -105,7 +105,7 @@ bool isInside(point_t poly[], int n)
 		if( (p1.y >= 0 && p2.y < 0)
 		 || (p1.y < 0 && p2.y >= 0) )
 		{
-			double hitx = p1.y / (double)(p1.y-p2.y) * (p2.x - p1.x) + p1.x;
+			double hitx = p1.y / (double)(p1.y-p2.y) * (p2.x-p1.x) + p1.x;
 			if( hitx >= 0 ) hit++;
 		}
 	}
