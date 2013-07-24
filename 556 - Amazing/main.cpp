@@ -43,12 +43,12 @@ struct Robot
                 y = ny;
                 f[y][x]++;
 
-                int rightDir = (dir + 3) % 4;
+                int rightDir = (dir + 3) & 0x3;
                 if( maze[ny + move[rightDir][1]][nx + move[rightDir][0]] == '0' )
                 {
                     // turn right
                     dir += 3;
-                    if( dir >= 4 ) dir-=4;
+					dir &= 0x3;
                 }
 
 				
@@ -58,7 +58,7 @@ struct Robot
             {
                 // turn left
                 dir ++;
-                if( dir >= 4 ) dir-=4;
+				dir &= 0x3;
             }
         }
     }
