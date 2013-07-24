@@ -345,7 +345,7 @@ int main()
         }
         else
         {
-            cout << "This puzzle is not solvable." << endl;
+            printf("%s\n", "This puzzle is not solvable.");
         }
     }
     return 0;
