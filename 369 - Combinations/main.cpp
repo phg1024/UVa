@@ -11,6 +11,9 @@
 #include <cmath>
 using namespace std;
 
+// algorithm: factorize the number, then compute the result
+// alternative: dynamic programming, C(n, k) = C(n-1, k-1) + C(n-1, k)
+
 struct fact_t
 {
     fact_t(){}
