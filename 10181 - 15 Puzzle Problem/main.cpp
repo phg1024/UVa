@@ -121,11 +121,11 @@ struct Board
                 if( v == 0 )
                     rx = 3, ry = 3;
 
+				int dx = rx-j;
+				int dy = ry-i;
                 score += abs(rx-j) + abs(ry-i);
-				//score += ((rx==j)&&(ry==i))?0:1;
             }
         }
-        //cout << score << endl;
 		score = score * 2 + depth;
     }
 
@@ -225,12 +225,6 @@ Board solve_astar(const Board& b)
         Board cur = Q.top();
         Q.pop();
        
-        //cout << "queue size = " << Q.size() << endl;
-        //cout << cur << endl;
-        //cout << cur.data << endl;
-
-        //getchar();
-
         visited.insert(make_pair(cur.data, cur.score));
 
         if( cur.isSolved() ) return cur;
@@ -244,42 +238,21 @@ Board solve_astar(const Board& b)
         {
             Board& cb = candidates[i];
             cb.evaluate();
-			//cout << cb << endl;
-			/*
-            cout << "current node = " << cb.data << endl;
-			cout << "map = " << endl;
-			for(map<int64_t, float>::iterator mit=visited.begin();
-				mit!=visited.end();
-				mit++)
-				{
-					cout << (*mit).first << '\t';
-				}
-				cout << endl;
-				*/
-				//getchar();
 				
             map<int64_t, float>::iterator it = visited.find(cb.data);
             if( it == visited.end() )
             {
-                //cout << "new state." << endl;
-                //cout << cb.data << endl;
-                //cout << cb << endl;
                 Q.push(cb);
             }
             else
             {
-                //cout << "visited." << endl;
-                //cout << cb << endl;
                 // visited state
                 if( cb.score < (*it).second )
                 {
-                    //cout << "lower cost" << endl;
                     visited.erase(it);
                     Q.push(cb);
                 }
             }
-
-            //cout << "current queue size = " << Q.size() << endl;
         }
     }
 }
