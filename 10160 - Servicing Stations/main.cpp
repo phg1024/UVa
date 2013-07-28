@@ -101,12 +101,13 @@ struct graph_t
 
 int solve(graph_t& G)
 {
+	//cout << "start" << endl;
 	G.makeCoverage();
 	
+	set<int> n1n;
 	set<int> n1;
 	
 	// find out all nodes with 0 and 1 degree
-	int n1count = 0;
 	for(int i=1;i<=G.nv;i++)
 	{
 		//cout << i << " # " << G.E[i].size() << endl;
@@ -120,12 +121,15 @@ int solve(graph_t& G)
 		
 		if( G.E[i].size() == 1 ){
 			int v1 = i, v2 = G.E[i][0];
-			n1.insert(v1);
+			
+			n1n.insert(v1);
+			n1n.insert(v2);
+			
+			//cout << "node " << v1 << endl;
 			n1.insert(v2);
-			n1count++;
 			// plus all neighbor of G.E[i][0]
 			for(int j=0;j<G.E[v2].size();j++)
-				n1.insert(G.E[v2][j]);
+				n1n.insert(G.E[v2][j]);
 		}
 	}
 	
@@ -134,8 +138,8 @@ int solve(graph_t& G)
 	// all nodes in n01 are in the min cover set, so no need to consider them
 	// remove these nodes from the graph
 	// this can be done by modifying the target
-	for(set<int>::iterator it=n1.begin();
-		it!=n1.end();
+	for(set<int>::iterator it=n1n.begin();
+		it!=n1n.end();
 		it++)
 	{
 		G.target &= (~(ONE<<(*it)));
@@ -143,21 +147,23 @@ int solve(graph_t& G)
 	//cout << bitset<36>(G.target) << endl;
 	
 	bool found = false;
-	for(int i=1;i<=G.nv;i++)
+	for(int i=1;i<=G.nv-n1.size();i++)
 	{
 		Combination comb(G.nv, i);
 	    while( !comb.completed )
 	    {
 			
 			//for(int j=0;j<i;j++)
-			//	cout << comb.curr[j] << ' ';
+			//		cout << comb.curr[j] << ' ';
 			//cout << endl;
 			//cout << (comb.completed?"completed!":"ongoing...") << endl;
 			
 			G.evaluate(comb.curr, i);
 			comb.next();
+			
 			//cout << bitset<36>(G.covered) << endl;
-			if( G.covered == G.target )
+			//if( (G.covered == G.target) || (( (G.covered & (~G.target)) | G.target) == G.covered) )
+			if( G.covered >= G.target )
 			{
 				//cout << "found." << endl;
 				//cout << bitset<36>(G.covered) << endl;
@@ -167,7 +173,7 @@ int solve(graph_t& G)
 	    }
 		
 		if( found )
-			return i + n1count;
+			return i + n1.size();
 	}
 }
 
