@@ -33,7 +33,6 @@ struct Combination
         completed = true;
         for(int i=r-1;i>=0;i--)
         {
-			//cout << "curr[i] = " << curr[i] << " # " << n - r + i + 1 << endl;
             if( curr[i] < n - r + i + 1 )
             {
                 int j = curr[i] + 1;
@@ -62,8 +61,6 @@ struct graph_t
 		{
 			target |= (ONE << i);
 		}
-		
-		//cout << bitset<36>(target) << endl;
 	}
 	
 	void evaluate(int support[], int k)
@@ -71,10 +68,8 @@ struct graph_t
 		covered = 0x0;
 		for(int i=0;i<k;i++)
 		{
-			//cout << support[i] << ' ';
 			covered |= coverage[support[i]];
 		}
-		//cout << endl;
 	}
 	
 	void makeCoverage()
@@ -101,31 +96,20 @@ struct graph_t
 
 int solve(graph_t& G)
 {
-	//cout << "start" << endl;
 	G.makeCoverage();
 	
 	set<int> n1n;
 	set<int> n1;
 	
-	// find out all nodes with 0 and 1 degree
+	// find out all 1 degree nodes
 	for(int i=1;i<=G.nv;i++)
 	{
-		//cout << i << " # " << G.E[i].size() << endl;
-		/*
-		// this is impossible because they are already removed in the graph decomposition step
-		if( G.E[i].size() == 0 )
-		{
-			n01.insert(i);
-		}
-		*/
-		
 		if( G.E[i].size() == 1 && n1.find(i) == n1.end() ){
 			int v1 = i, v2 = G.E[i][0];
 			
 			n1n.insert(v1);
 			n1n.insert(v2);
 			
-			//cout << "node " << v1 << endl;
 			n1.insert(v2);
 
 			// plus all neighbor of G.E[i][0]
@@ -134,7 +118,6 @@ int solve(graph_t& G)
 		}
 	}
 	
-	//cout << "n1 = " << n1.size() << endl;
 	
 	// all nodes in n01 are in the min cover set, so no need to consider them
 	// remove these nodes from the graph
@@ -146,8 +129,8 @@ int solve(graph_t& G)
 		G.target &= (~(ONE<<(*it)));
 	}
 
+    // it is possible the graph is already covered
     if( G.target == 0 ) return n1.size();
-	//cout << bitset<36>(G.target) << endl;
 	
 	bool found = false;
 	for(int i=1;i<=G.nv-n1.size();i++)
@@ -156,20 +139,12 @@ int solve(graph_t& G)
 	    while( !comb.completed )
 	    {
 			
-			//for(int j=0;j<i;j++)
-			//		cout << comb.curr[j] << ' ';
-			//cout << endl;
-			//cout << (comb.completed?"completed!":"ongoing...") << endl;
-			
 			G.evaluate(comb.curr, i);
 			comb.next();
 			
-			//cout << bitset<36>(G.covered) << endl;
-			//if( (G.covered == G.target) || (( (G.covered & (~G.target)) | G.target) == G.covered) )
+            // the covered set should be a super set of the target
 			if( (G.covered & G.target) == G.target )
 			{
-				//cout << "found." << endl;
-				//cout << bitset<36>(G.covered) << endl;
 				found = true;
 				break;
 			}
@@ -253,22 +228,10 @@ int solve_wholegraph(const graph_t& G)
 				{
 					// add this edge to the subgraph
 					subgraph.E[ index[v1] ].push_back( index[v2] );
-					//subgraph.E[ index[v2] ].push_back( index[v1] );
 				}
 			}
 		}
 		subgraph.makeCoverage();
-		
-		/*
-		cout << vertices.size() << " # " << res << endl;
-		for(set<int>::iterator dit = vdone.begin(); dit != vdone.end(); dit++)
-			cout << (*dit) << " ";
-		cout << endl;
-		
-		for(vector<int>::iterator dit = vertices.begin(); dit != vertices.end(); dit++)
-			cout << (*dit) << " ";
-		cout << endl;
-		*/
 		
 		res += solve(subgraph);
 	}	
@@ -297,13 +260,6 @@ int main()
 			G.E[b].push_back(a);
         }
 
-		/*
-        for(int i=1;i<=n;i++)
-        {
-			cout << G.E[i].size() << endl;
-        }
-		*/
-		
         printf("%d\n", solve_wholegraph(G));
     }
 
