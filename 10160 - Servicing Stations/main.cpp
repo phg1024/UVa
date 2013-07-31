@@ -119,14 +119,14 @@ int solve(graph_t& G)
 	}
 	
 	
-	// all nodes in n01 are in the min cover set, so no need to consider them
+	// all nodes in n1n are in the min cover set, so no need to consider them
 	// remove these nodes from the graph
 	// this can be done by modifying the target
-	for(set<int>::iterator it=n1n.begin();
-		it!=n1n.end();
+	for(set<int>::iterator it=n1.begin();
+		it!=n1.end();
 		it++)
 	{
-		G.target &= (~(ONE<<(*it)));
+		G.target &= (~(G.coverage[*it]));
 	}
 
     // it is possible the graph is already covered
