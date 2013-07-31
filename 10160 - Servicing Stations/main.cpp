@@ -119,7 +119,7 @@ int solve(graph_t& G)
 		}
 		*/
 		
-		if( G.E[i].size() == 1 ){
+		if( G.E[i].size() == 1 && n1.find(i) == n1.end() ){
 			int v1 = i, v2 = G.E[i][0];
 			
 			n1n.insert(v1);
@@ -127,13 +127,14 @@ int solve(graph_t& G)
 			
 			//cout << "node " << v1 << endl;
 			n1.insert(v2);
+
 			// plus all neighbor of G.E[i][0]
 			for(int j=0;j<G.E[v2].size();j++)
 				n1n.insert(G.E[v2][j]);
 		}
 	}
 	
-	//cout << n1count << endl;
+	//cout << "n1 = " << n1.size() << endl;
 	
 	// all nodes in n01 are in the min cover set, so no need to consider them
 	// remove these nodes from the graph
@@ -144,6 +145,8 @@ int solve(graph_t& G)
 	{
 		G.target &= (~(ONE<<(*it)));
 	}
+
+    if( G.target == 0 ) return n1.size();
 	//cout << bitset<36>(G.target) << endl;
 	
 	bool found = false;
@@ -163,7 +166,7 @@ int solve(graph_t& G)
 			
 			//cout << bitset<36>(G.covered) << endl;
 			//if( (G.covered == G.target) || (( (G.covered & (~G.target)) | G.target) == G.covered) )
-			if( G.covered >= G.target )
+			if( (G.covered & G.target) == G.target )
 			{
 				//cout << "found." << endl;
 				//cout << bitset<36>(G.covered) << endl;
