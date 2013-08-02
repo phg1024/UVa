@@ -10,7 +10,7 @@
 #include <cmath>
 using namespace std;
 
-bool clap(int64_t val)
+bool clap(int val)
 {
     if( val % 7 == 0 ) return true;
     while( val )
