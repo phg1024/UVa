@@ -4,44 +4,30 @@
 #include <bitset>
 #include <algorithm>
 #include <cstdio>
-#include <cstdlib>
-#include <stdint.h>
 
 using namespace std;
 
-#define BIT(s, n) (((s) >> (n)) & 0x1)
-
-typedef int64_t state_t;
+typedef unsigned int state_t;
 
 // transformation map
-int64_t tmap[8] = {
-	0x0,			// 0000 0000 0000
-	0x4,			// 0000 0000 0100
-	0x2,			// 0000 0000 0010
-	0x6,			// 0000 0000 0110
-	0x1,			// 0000 0000 0001
-	0x5,			// 0000 0000 0101
-	0x3,			// 0000 0000 0011
-	0x7,			// 0000 0000 0111
-};
+char tmap[8][3] = { {0, 0, 0}, {0, 0, 1}, {0, 1, 0}, {0, 1, 1},
+{1, 0, 0}, {1, 0, 1}, {1, 1, 0}, {1, 1, 1}};
 
-bool hasAncestor(int automata, int cellidx, int ncells, state_t state, state_t prevstate)
+bool hasAncestor(const bitset<8>& automata, int cellidx, int ncells, const bitset<32>& state, const bitset<32>& prevstate)
 {
+	//cout << cellidx << '\t' << prevstate <<endl;
 	if( cellidx == 0 )
 	{
 		for(int i=0;i<8;i++)
 		{
 			// if the first digit of the state sequence is the mapped value of the given automata
 			// start the search for the rest of the state sequence
-			if( BIT(state, cellidx) == BIT(automata, i) )
+			if( state[cellidx] == automata[i] )
 			{
-				// ps is an augmented state with 1 to n bits representing the actual state and 0, n+1 used as repeated bits
-				state_t ps = tmap[i];
-
-				// set the n-th and the n+1-th bit
-				ps |= (BIT(tmap[i], 0) << (ncells));
-				ps |= (BIT(tmap[i], 1) << (ncells+1));
-
+				bitset<32> ps;
+				ps[0] = tmap[i][1];
+				ps[1] = tmap[i][2];
+				ps[ncells-1] = tmap[i][0];
 				if( hasAncestor(automata, cellidx+1, ncells, state, ps) ) return true;
 			}
 		}
@@ -51,13 +37,14 @@ bool hasAncestor(int automata, int cellidx, int ncells, state_t state, state_t p
 	{
 		// simply check if current state is satisfiable
 		for (int i = 0; i < 8; i++)  
-            if ( BIT(state, cellidx) == BIT(automata, i) )
+            if (state[cellidx] == automata[i] )
 			{
-				if( ((prevstate >> cellidx) & 0x7) == tmap[i] )
+				if( tmap[i][0] == prevstate[cellidx - 1] &&  
+					tmap[i][1] == prevstate[cellidx]     &&  
+					tmap[i][2] == prevstate[cellidx + 1] )  
 				{  
 					// check the last digit
-					if( hasAncestor(automata, cellidx+1, ncells, state, prevstate) )
-						return true;
+					return hasAncestor(automata, cellidx+1, ncells, state, prevstate);
 				}  
 			}
         return false; 
@@ -66,10 +53,13 @@ bool hasAncestor(int automata, int cellidx, int ncells, state_t state, state_t p
 	{
 		// simply check if current state is satisfiable
 		for (int i = 0; i < 8; i++)  
-            if ( BIT(state, cellidx) == BIT(automata, i) )
+            if (state[cellidx] == automata[i] )
 			{
-				if( ((prevstate >> cellidx) & 0x7) == tmap[i] )
+				if( tmap[i][0] == prevstate[cellidx - 1] &&  
+					tmap[i][1] == prevstate[cellidx]     &&  
+					tmap[i][2] == prevstate[0] )  
 				{
+					//cout << prevstate << endl;
 					// check the last digit
 					return true;
 				}  
@@ -82,14 +72,13 @@ bool hasAncestor(int automata, int cellidx, int ncells, state_t state, state_t p
 		{
 			// if the cellidx-th digit of the state sequence is the mapped value of the given automata
 			// start the search for the rest of the state sequence
-			if( BIT(state, cellidx) == BIT(automata, i) )
+			if( state[cellidx] == automata[i] )
 			{
-				// satisfy the digit preceding current digit 
-				if( ((prevstate >> cellidx) & 0x3) == (tmap[i] & 0x3) )
+				// satisfy the digit preceding current digit
+				if( prevstate[cellidx-1] == tmap[i][0] && prevstate[cellidx] == tmap[i][1] )
 				{
-					state_t ps = prevstate;
-					ps |= ((BIT(tmap[i], 2) << (cellidx + 2)));
-
+					bitset<32> ps = prevstate;
+					ps[cellidx+1] = tmap[i][2];
 					if( hasAncestor(automata, cellidx+1, ncells, state, ps) )
 						return true;
 				}
@@ -99,31 +88,25 @@ bool hasAncestor(int automata, int cellidx, int ncells, state_t state, state_t p
 	}
 }
 
-state_t str2state(char str[], int L)
-{
-	state_t s = 0;
-	for(int i=0;i<L;i++)
-	{
-		s = ((s << 1) | (str[i] - '0'));
-	}
-	return s;
-}
-
 int main()
 {
-	int automata;
+	int code;
 	int ncells;
-	char str[33];
+	char buf[33];
 
-	while( cin >> automata >> ncells >> str )
+	while( scanf("%d %d %s", &code, &ncells, buf) != EOF )
 	{
-		state_t state = str2state( str, ncells );
-		
-		if( hasAncestor(automata, 0, ncells, state, (int64_t)0x0) )  
+		bitset<8> automata(code);
+		string str(buf);
+
+		std::reverse(str.begin(), str.end());
+		bitset<32> state(str);
+		//cout << automata << '\t' << ncells << '\t' << state << endl;
+
+		if( hasAncestor(automata, 0, ncells, state, bitset<32>()) )  
             printf("REACHABLE\n");  
         else  
             printf("GARDEN OF EDEN\n");
-			
 	}
 
 	return 0;
