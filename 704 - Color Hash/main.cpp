@@ -123,7 +123,7 @@ bool solve(map<state_t, bool>& boundary, const string& state, string& seq)
 		map<state_t, bool>::iterator bit = boundary.find( cur );
 		if( bit != boundary.end() )
 		{
-			string bseq = reverse_steps( (*bit).first.seq );
+            string bseq = reverse_steps( (*bit).first.seq );
 			seq = cur.seq + bseq;
 			return true;
 		}
@@ -152,13 +152,13 @@ void init(map<state_t, bool>& s)
 		state_t cur = Q.front();
 		Q.pop();
 
-		map<state_t, bool>::iterator sit = s.find( cur );
-
 		if( cur.seq.size() > 8 ) continue;
 
+		map<state_t, bool>::iterator sit = s.find( cur );
 		if( sit == s.end() )
 		{
-			s.insert( make_pair(cur, true) );
+            s.insert( make_pair(cur, true) );
+
 			Q.push( state_t( leftCW( cur.str ), cur.seq + "1") );
 			Q.push( state_t( rightCW( cur.str ), cur.seq + "2") );
 			Q.push( state_t( leftCCW( cur.str ), cur.seq + "3") );
