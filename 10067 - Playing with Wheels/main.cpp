@@ -14,44 +14,13 @@ using namespace std;
 
 struct state_t
 {
-    state_t():key(0),depth(0){
-        memset(str, 0, sizeof(char)*4);
-    }
-
-    state_t(const state_t& s):key(s.key),depth(s.depth)
-    {
-        memcpy(str, s.str, sizeof(char)*4);
-    }
-
-    state_t& operator=(const state_t& s)
-    {
-        key = s.key;
-        depth = s.depth;
-        memcpy(str, s.str, sizeof(char)*4);
-        return (*this);
-    }
+    state_t():key(0),depth(0){}
 
     bool operator==(const state_t& s) const
     {
         return key == s.key;
     }
 
-    bool operator<(const state_t& s) const
-    {
-        return key < s.key;
-    }
-
-    void update()
-    {
-        key = 0;
-        for(int i=0;i<4;i++)
-        {
-            key = key * 10;
-            key += str[i];
-        }
-    }
-
-    char str[4];
     int key;
     int depth;
 };
@@ -65,48 +34,61 @@ state_t getState()
         int val;
         scanf("%d", &val);
         s.key += val;
-        s.str[i] = val;
     }
     return s;
 }
 
+inline int value( char str[] )
+{
+    return str[0] * 1000 + str[1] * 100 + str[2] * 10 + str[3];
+}
+
 void getCandidates(state_t state, state_t v[])
 {
-    for(int i=0;i<4;i++)
-    {
-        v[i] = v[i+4] = state;
-        state_t& l = v[i];
-        l.str[i] = l.str[i] - 1;
-        l.depth = state.depth + 1;
-        if( l.str[i] < 0 ) l.str[i] = 9;
-        l.update();
+    char str[5];
+    str[0] = state.key / 1000;
+    state.key %= 1000;
+    str[1] = state.key / 100;
+    state.key %= 100; 
+    str[2] = state.key / 10;
+    state.key %= 10;
+    str[3] = state.key;
 
-        state_t& r = v[i+4];
-        r.str[i] = r.str[i] + 1;
-        r.depth = state.depth + 1;
-        if( r.str[i] > 9 ) r.str[i] = 0;
-        r.update();
+    char buf[4];
+    buf[0] = str[0]; buf[1] = str[1]; buf[2] = str[2]; buf[3] = str[3];
+
+    for(int i=0, j=4;i<4;i++, j++)
+    {
+        v[i] = v[j] = state;
+
+        buf[i] = str[i] - 1;
+        if( buf[i] < 0 ) buf[i] = 9;
+        v[i].depth = state.depth + 1;
+        v[i].key = value( buf ) ;
+
+        buf[i] = str[i] + 1;
+        if( buf[i] > 9 ) buf[i] = 0;
+        v[j].depth = state.depth + 1;
+        v[j].key = value( buf ) ;
+
+        buf[i] = str[i];
     }
 }
 
-int solve(state_t state, state_t target, const set<state_t>& forbidStates)
+int solve(state_t state, state_t target, char visited[]) 
 {
-    char visited[10000] = {0};
     state_t children[8];
 
-    for(set<state_t>::iterator it = forbidStates.begin();
-        it != forbidStates.end();
-        it++)
-        visited[(*it).key] = 2;
+    int front = 0, back = 1;
+    static const int QSIZE = 6000;
+    state_t Q[QSIZE];
 
-    queue<state_t> Q;
+    Q[0] = state ;
 
-    Q.push( state );
-
-    while( !Q.empty() )
+    while( front != back )
     {
-        state_t cur = Q.front();
-        Q.pop();
+        state_t& cur = Q[front++];
+        if( front >= QSIZE ) front = 0;
 
         if( visited[ cur.key ] == 2 ) continue;
 
@@ -122,7 +104,8 @@ int solve(state_t state, state_t target, const set<state_t>& forbidStates)
             for(int i=0;i<8;i++)
             {
                 if( visited[ children[i].key ] ) continue;
-                Q.push( children[i] );
+                Q[back++] = children[i];
+                if( back >= QSIZE ) back = 0;
             }
         }
     }
@@ -140,16 +123,16 @@ int main()
         state_t state = getState();
         state_t target = getState();
 
+        char visited[10000] = {0};
         int nforbids;
         scanf("%d", &nforbids);
-        set<state_t> forbidStates;
         for(int i=0;i<nforbids;i++)
         {
             state_t fs = getState();
-            forbidStates.insert(fs);
+            visited[ fs.key ] = 2;
         }
 
-        printf("%d\n", solve(state, target, forbidStates));
+        printf("%d\n", solve(state, target, visited));
     }
     return 0;
 }
