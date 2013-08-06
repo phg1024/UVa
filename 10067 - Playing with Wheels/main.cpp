@@ -14,8 +14,7 @@ using namespace std;
 
 struct state_t
 {
-    state_t():key(0),depth(0){}
-
+	state_t():key(0), depth(0){}
     int key;
     int depth;
 };
@@ -23,13 +22,13 @@ struct state_t
 state_t getState()
 {
     state_t s;
-    for(int i=0;i<4;i++)
-    {
-        s.key *= 10;
-        int val;
-        scanf("%d", &val);
-        s.key += val;
-    }
+	int v;
+	for(int i=0;i<4;i++)
+	{
+		s.key *= 10;
+		scanf("%d", &v);
+		s.key += v;
+	}
     return s;
 }
 
@@ -83,7 +82,7 @@ int solve(state_t state, state_t target, char visited[])
     static const int QSIZE = 6000;
     state_t Q[QSIZE];
 
-    Q[0] = state ;
+    Q[0] = state;
 
     // unsafe queue, possible overwrite of data
     while( front != back )
