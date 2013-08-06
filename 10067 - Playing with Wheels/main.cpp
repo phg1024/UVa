@@ -16,11 +16,6 @@ struct state_t
 {
     state_t():key(0),depth(0){}
 
-    bool operator==(const state_t& s) const
-    {
-        return key == s.key;
-    }
-
     int key;
     int depth;
 };
@@ -38,22 +33,26 @@ state_t getState()
     return s;
 }
 
-inline int value( char str[] )
+inline int str2key( char str[] )
 {
     return str[0] * 1000 + str[1] * 100 + str[2] * 10 + str[3];
+}
+
+inline void key2str( int key, char str[] )
+{
+    str[0] = key / 1000;
+    key %= 1000;
+    str[1] = key / 100;
+    key %= 100; 
+    str[2] = key / 10;
+    key %= 10;
+    str[3] = key;
 }
 
 void getCandidates(state_t state, state_t v[])
 {
     char str[5];
-    str[0] = state.key / 1000;
-    state.key %= 1000;
-    str[1] = state.key / 100;
-    state.key %= 100; 
-    str[2] = state.key / 10;
-    state.key %= 10;
-    str[3] = state.key;
-
+    key2str(state.key, str);
     char buf[4];
     buf[0] = str[0]; buf[1] = str[1]; buf[2] = str[2]; buf[3] = str[3];
 
@@ -64,12 +63,12 @@ void getCandidates(state_t state, state_t v[])
         buf[i] = str[i] - 1;
         if( buf[i] < 0 ) buf[i] = 9;
         v[i].depth = state.depth + 1;
-        v[i].key = value( buf ) ;
+        v[i].key = str2key( buf ) ;
 
         buf[i] = str[i] + 1;
         if( buf[i] > 9 ) buf[i] = 0;
         v[j].depth = state.depth + 1;
-        v[j].key = value( buf ) ;
+        v[j].key = str2key( buf ) ;
 
         buf[i] = str[i];
     }
@@ -80,11 +79,13 @@ int solve(state_t state, state_t target, char visited[])
     state_t children[8];
 
     int front = 0, back = 1;
+    // large enough pool
     static const int QSIZE = 6000;
     state_t Q[QSIZE];
 
     Q[0] = state ;
 
+    // unsafe queue, possible overwrite of data
     while( front != back )
     {
         state_t& cur = Q[front++];
@@ -92,7 +93,7 @@ int solve(state_t state, state_t target, char visited[])
 
         if( visited[ cur.key ] == 2 ) continue;
 
-        if( cur == target )
+        if( cur.key == target.key )
         {
             return cur.depth;
         }
