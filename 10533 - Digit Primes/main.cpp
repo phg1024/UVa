@@ -11,7 +11,7 @@
 #include <cmath>
 using namespace std;
 
-bitset<1000010> notprime(0);
+char notprime[1000010] = {0};
 int ndp;
 int dp[32768];
 int dpcount[1000001];
@@ -30,15 +30,12 @@ int digitsum(int n)
 void digitprimes()
 {
     int x=2;
-    while( x <= 1000009 )
+    while( x <= 1003 )
     {
-        for(int i=x+x;i<=1000009;i+=x)
+        for(int i=x*x;i<=1000009;i+=x)
             notprime[i] = 1;
 
-        while( notprime[++x] == 1 )
-        {
-            if( x > 1000009 ) break;
-        }
+        while( ++x < 1000009 && notprime[x] == 1 ) ;
     }
 
     ndp = 0;
@@ -64,7 +61,6 @@ int main()
     {
         int a, b;
         scanf("%d %d", &a, &b);
-
         printf("%d\n", dpcount[b] - dpcount[a-1]);
     }
 
