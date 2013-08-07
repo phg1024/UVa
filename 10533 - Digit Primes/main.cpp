@@ -13,7 +13,6 @@ using namespace std;
 
 char notprime[1000010] = {0};
 int ndp;
-int dp[32768];
 int dpcount[1000001];
 
 int digitsum(int n)
@@ -44,8 +43,9 @@ void digitprimes()
         if( !notprime[i] ){
             int v = digitsum( i );
             if( !notprime[v] )
-                dp[ndp++] = i;
+                ndp++;
         }
+
         dpcount[i] = ndp;
     }
 }
