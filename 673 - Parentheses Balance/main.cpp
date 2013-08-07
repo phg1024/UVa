@@ -5,11 +5,12 @@
 #include <cstdlib>
 using namespace std;
 
+static const int MAXL = 130;
 bool isvalid( char str[], int L )
 {
 	if( L & 0x1 ) return false;
 	if( L == 0 ) return true;
-	char s[256] = {0};
+	char s[MAXL] = {0};
 	int i=0, j=0;
 	while( i < L )
 	{
@@ -33,8 +34,8 @@ int main()
 
 	while( n-- > 0 )
 	{
-		char str[256] = {0};
-		fgets(str, 255, stdin);
+		char str[MAXL] = {0};
+		fgets(str, MAXL, stdin);
 		int L = strlen(str);
 		if( str[L-1] == '\n' ) str[--L] = '\0';
 		printf("%s\n", (isvalid( str, L )?"Yes":"No"));
