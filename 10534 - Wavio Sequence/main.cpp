@@ -29,10 +29,12 @@ int binarySearch(int lis[], int L, int x)
 
 int longestWavioSequence(int n, int num[])
 {
-    int Li[10000] = {0};
+    // longest increasing sequence
     int lis[10000] = {0};
 
-    // longest increasing
+    // length of the longest increasing sequence
+    // up to position i
+    int Li[10000] = {0};
     int L = 0;
     for(int i=0;i<n;i++)
     {
@@ -43,7 +45,8 @@ int longestWavioSequence(int n, int num[])
         Li[i] = L;
     }
     
-    // longest decreasing
+    // length of the longest decreasing sequence
+    // up to position i
     int Ld[10000] = {0};
     L = 0;
     for(int i=n-1;i>=0;i--)
