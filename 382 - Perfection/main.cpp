@@ -23,7 +23,10 @@ int64_t judge(int64_t val)
         if( val % i == 0 )
         {
             int64_t q = val / i;
-            sum += (i+q);
+			if( q != i )
+				sum += (i+q);
+			else
+				sum += i;
         }
     }
     return sum - val;
