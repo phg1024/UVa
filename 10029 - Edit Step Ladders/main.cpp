@@ -35,7 +35,7 @@ int main()
 			// delete
 			for(int i=0;i<len;i++)
 			{
-				if( (i == s.size()-1 ) || (s[i+1] <= s[i]) ){
+				if( (i == len-1 ) || (s[i+1] <= s[i]) ){
 					string sc = s;
 					sc.erase(sc.begin() + i);
 					map<string, int>::iterator it = dict[len-1].find(sc);
