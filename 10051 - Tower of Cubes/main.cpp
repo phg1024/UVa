@@ -86,15 +86,9 @@ int main(){
         int h[MAXN][6];
         trace_t prev[MAXN][6];
 
-        for(int j=0;j<6;j++)
-        {
-            h[0][j] = 1;
-            prev[0][j] = trace_t(-1, -1);
-        }
-
         int maxH = 1;
         pair<int, int> maxTower;
-        for(int i=1;i<n;i++)
+        for(int i=0;i<n;i++)
         {
             for(int j=0;j<6;j++)
             {
@@ -132,15 +126,6 @@ int main(){
                 }
             }
         }
-
-        /*
-        for(int i=0;i<n;i++)
-        {
-            for(int j=0;j<6;j++)
-                printf("%d ", h[i][j]);
-            printf("\n");
-        }
-        */
 
         printf("Case #%d\n", ++caseidx);
         printf("%d\n", maxH);
