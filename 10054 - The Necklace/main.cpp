@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <functional>
 #include <vector>
+#include <queue>
 
 #include <cstring>
 #include <cstdio>
@@ -33,6 +34,43 @@ void euler(int u, int g[][N]){
     }
 }
 
+bool bfs(int g[][N], int deg[])
+{
+    char visited[N] = {0};
+	int root = -1;
+	for(int i=1;i<N;i++)
+	{
+		visited[N] = (deg[i] == 0);
+		if( deg[i] && root == -1 )
+		{
+			root = i;
+		}
+	}
+	
+	queue<int> Q;
+	Q.push(root);
+	
+	while( !Q.empty() )
+	{
+		int cur = Q.front();
+		Q.pop();
+		for(int i=1;i<N;i++)
+		{
+			int v = g[i][cur];
+			if( !visited[v] )
+			{
+				Q.push(v);
+				visited[v] = 1;
+			}
+		}
+	}
+	
+	for(int i=1;i<N;i++)
+		if( !visited[i] )
+			return true;
+	return false;
+}
+
 int main()
 {
     int ncases;
@@ -45,7 +83,6 @@ int main()
 
         int graph[N][N] = {0};
         int deg[N] = {0};
-        char visited[N] = {0};
 
         for(int j=0;j<n;j++)
         {
@@ -58,6 +95,11 @@ int main()
         }
 
         bool hasEuler = true;
+				
+		// check if the graph is connected
+		hasEuler = bfs(graph, deg);
+		
+		// check if the graph has an euler circle
         for(int j=1;j<N;j++)
         {
             if( deg[j] & 0x1 ) {
