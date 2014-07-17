@@ -15,13 +15,10 @@ int length(unsigned int n)
 	else
 		n += (n << 1) + 1;
 
-	if( n < SIZE ){
-		if( count[n] == 0 )
-			count[n] = length(n);
-		return count[n] + 1;
-	}
+        int val = length(n);
+	if( n < SIZE && count[n] == 0 ) count[n] = length(n);
 
-	return length(n) + 1;
+	return val + 1;
 }
 
 int main()
